@@ -1,0 +1,549 @@
+;; -*- lexical-binding: t -*-
+
+
+;; to delete mail:
+;; notmuch search --output=files --format=text0 tag:del | xargs -r0 rm
+(require 'smtpmail)
+
+(setq mail-user-agent 'message-user-agent)
+
+(setq user-mail-address "stephen@yearl.uk"
+      user-full-name "Stephen Yearl [UK]")
+
+;; 
+;; * SENDMAIL
+;;
+
+(use-package sendmail
+  :after (message notmuch)
+  :config
+  (setq mail-host-address "protonmail.com"
+        send-mail-function 'sendmail-send-it
+        message-send-mail-function 'message-send-mail-with-sendmail
+        sendmail-program "/usr/bin/msmtp"
+        sendmail-program (executable-find "msmtp")
+        mail-specify-envelope-from t
+        message-sendmail-envelope-from 'header
+        message-sendmail-f-is-evil nil
+        mail-envelope-from 'header
+        mail-interactive t))
+
+
+;; (setq     ;; mime-edit-pgp-signers '("56B914E316C6CA87")
+;;  mime-edit-pgp-encrypt-to-self t
+;;  mml2015-encrypt-to-self t
+;;  mml2015-sign-with-sender t
+;;  message-send-mail-function 'message-send-mail-with-sendmail
+;;  ;;sendmail-program "~/dev/mail/msmtp-enqueue.sh"
+
+;; /home/salopst/.config/protonmail/bridge/cert.pem
+;; /home/salopst/.config/protonmail/bridge/key.pem
+;; /home/salopst/.var/app/ch.protonmail.protonmail-bridge/config/protonmail/bridge/cert.pem
+;; /home/salopst/.var/app/ch.protonmail.protonmail-bridge/config/protonmail/bridge/key.pem
+
+
+(setq mml-secure-openpgp-encrypt-to-self t)
+(setq mml-secure-openpgp-sign-with-sender t )
+(setq mml-secure-smime-encrypt-to-self t)
+(setq mml-secure-smime-sign-with-sender t)
+(setq mm-encrypt-option nil)
+(setq mm-sign-option nil)
+
+
+;;
+(setq message-send-mail-function 'smtpmail-send-it
+      smtpmail-auth-credentials "~/.authinfo.gpg"
+      smtpmail-auth-credentials nil
+      smtpmail-stream-type 'starttls
+      ;;  smtpmail-stream-type 'ssl
+      ;;  smtpmail-smtp-server "smtps://stephen@yearl.us@smtp.gmail.​​​com"
+      ;;  smtpmail-smtp-service 465
+      smtpmail-smtp-server "127.0.0.1"
+      smtpmail-smtp-service 1025
+      smtpmail-debug-info t)
+
+(setq message-default-mail-headers "Cc: \nBcc: \n"
+      message-auto-save-directory "~/Maildir/draft"
+      message-kill-buffer-on-exit t
+      message-directory "~/Maildir/")
+
+
+(setq  notmuch-archive-tags '("-inbox" "-unread" "+archived")
+       notmuch-show-mark-read-tags '("-inbox" "-unread" "+archived")
+       notmuch-search-oldest-first nil
+       notmuch-show-indent-content nil
+       notmuch-maildir "~/Maildir"
+       notmuch-crypto-process-mime t
+       notmuch-fcc-dirs nil
+       notmuch-message-headers-visible nil
+       notmuch-saved-searches nil
+       notmuch-always-prompt-for-sender t
+       notmuch-archive-tags '("-inbox" "-unread")
+       message-kill-buffer-on-exit t
+       notmuch-show-all-multipart/alternative-parts nil
+       notmuch-hooks-dir (expand-file-name ".notmuch/hooks" notmuch-maildir)
+       ;;  notmuch-always-prompt-for-sender t
+       notmuch-fcc-dirs '((".*" . "Sent"))
+       notmuch-show-indent-messages-width 4
+       notmuch-saved-searches '((:name "inbox" :query "tag:inbox" :key "i")
+                                (:name "Groceries" :query "from:sainsburys.co.uk")
+                                ))
+
+(setq 
+ ;;
+ ;; notmuch-search-result-format
+ ;; '(("date" . "%12s ")
+ ;;   ("count" . "%-7s ")
+ ;;   ("authors" . "%-30s ")
+ ;;   ("subject" . "%-72s ")
+ ;;   ("tags" . "(%s)"))
+ ;; notmuch-tag-formats
+ ;; '(("unread" (propertize tag 'face 'notmuch-tag-unread)))
+ )
+
+;;; NOTMUCH
+
+(use-package notmuch
+  ;;: straight (:type built-in)
+  :commands notmuch
+  :bind (("C-x m"   . notmuch-mua-new-mail)
+         ("C-x M-m" . notmuch-jump-search)
+         :map notmuch-search-mode-map
+         ("RET"   . notmuch-tree-from-search-thread)
+         ("M-RET" . notmuch-search-show-thread)
+         :map notmuch-tree-mode-map
+         ("M-s u" . my/notmuch-tree-browse-url)
+         ("<tab>" . my/notmuch-tree-message-push-button)
+         ("S-SPC" . notmuch-tree-scroll-message-window-back))
+  :hook ((notmuch-message-mode . turn-off-auto-fill)
+         (notmuch-mua-send . notmuch-mua-attachment-check))
+  :config
+  (setq-default notmuch-search-oldest-first nil)
+
+  ;; UI
+  (setq notmuch-show-logo t)
+  (setq notmuch-column-control 0.5) ;; 0.5 == 2 cols ; 1.0 == single col
+  (setq notmuch-hello-auto-refresh t)
+  (setq notmuch-hello-recent-searches-max 20)
+  (setq notmuch-hello-thousands-separator " ")
+  (setq notmuch-hello-sections '(notmuch-hello-insert-saved-searches notmuch-hello-insert-alltags))
+  (setq notmuch-show-all-tags-list t)
+
+  ;;(require 'org-notmuch-hello)
+  ;; https://git.sr.ht/~inwit/org-notmuch-hello
+  ;; https://github.com/rougier/mu4e-dashboard
+
+
+
+  (setq notmuch-search-line-faces
+        '(("flagged"   . (:inherit notmuch-search-flagged-face
+                                   :foreground "IndianRed"))
+	  ("important" . (:foreground "CornflowerBlue"))
+          ("unread"    . (:inherit notmuch-search-unread-face))))
+  
+  ;; Hide patches and diffs in notmuch-show by default. Note: To turn them into
+  ;; attachments from inline components you can customize
+  ;; `mm-inline-override-types' instead. This method simply toggles their inline
+  ;; display.
+  (advice-add 'notmuch-show-insert-bodypart :filter-args 'my/notmuch-hide-content)
+
+  (defvar my/notmuch-hide-content-types '("text/x-patch" "text/x-diff"))
+
+  (defun my/notmuch-hide-content (args)
+    (cl-destructuring-bind (msg part depth . hide) args
+      (list msg part depth
+            (if-let ((mime-type (notmuch-show-mime-type part))
+                     (_ (seq-some (lambda (type) (notmuch-match-content-type mime-type type))
+                                  my/notmuch-hide-content-types)))
+                t (car hide)))))
+  
+  (defun my/notmuch-tree-browse-url (&optional arg)
+    (interactive "P")
+    (when (window-live-p notmuch-tree-message-window)
+      (with-selected-window notmuch-tree-message-window
+        (my/search-occur-browse-url arg))))
+  
+  (defun notmuch-search-make-tagger (&rest tags)
+    (lambda () (interactive)
+      (let ((taglist (mapcar (lambda (tag)
+                               (if (member tag (notmuch-search-get-tags))
+                                   (concat "-" tag)
+                                 (concat "+" tag)))
+                             tags)))
+        (notmuch-search-tag taglist)
+        (message "Tagged: %s" (mapconcat #'identity taglist " "))
+        (notmuch-search-next-thread))))
+  
+  (defun notmuch-show-make-tagger (&rest tags)
+    (lambda () (interactive)
+      (let ((taglist (mapcar (lambda (tag)
+                               (if (member tag (notmuch-show-get-tags))
+                                   (concat "-" tag)
+                                 (concat "+" tag)))
+                             tags)))
+        (notmuch-show-tag taglist)
+        (message "Tagged: %s" (mapconcat #'identity taglist " "))
+        (notmuch-show-next-message))))
+  
+  (defun notmuch-tree-make-tagger (&rest tags)
+    (lambda (&optional all) (interactive "P")
+      (let ((taglist (mapcar (lambda (tag)
+                               (if (member tag (notmuch-tree-get-tags))
+                                   (concat "-" tag)
+                                 (concat "+" tag)))
+                             tags)))
+        (if all
+            (notmuch-tree-tag-thread taglist)
+          (notmuch-tree-tag taglist))
+        (message "Tagged: %s" (mapconcat #'identity taglist " "))
+        (notmuch-tree-next-thread))))
+
+  (define-key notmuch-search-mode-map (kbd "f") (notmuch-search-make-tagger "flagged"))
+  (define-key notmuch-show-mode-map (kbd "f") (notmuch-show-make-tagger "flagged"))
+  (define-key notmuch-tree-mode-map (kbd "f") (notmuch-tree-make-tagger "flagged"))
+
+  (define-key notmuch-search-mode-map (kbd "d") (notmuch-search-make-tagger "trash" "inbox"))
+  (define-key notmuch-show-mode-map (kbd "d") (notmuch-show-make-tagger "trash" "inbox"))
+  (define-key notmuch-tree-mode-map (kbd "d") (notmuch-tree-make-tagger "trash" "inbox"))
+
+  (define-key notmuch-show-mode-map "`" 'notmuch-show-apply-tag-macro)
+  (define-key notmuch-search-mode-map "`" 'notmuch-show-apply-tag-macro)
+  
+
+  );; END use-package notmuch
+
+
+;; * CONSULT-NOTMUCH
+(use-package consult-notmuch
+  :after consult
+  :bind (("M-s M-m" . consult-notmuch-latest-tree)
+         ("M-s m" . consult-notmuch-latest))
+  :config
+  (defun consult-notmuch-latest (&optional arg)
+    (interactive "P")
+    (let ((consult-async-input-debounce 0.6)
+          (consult-async-input-throttle 0.7))
+      (consult-notmuch
+       (unless arg "tag:inbox date:1d.."))))
+  (defun consult-notmuch-latest-tree (&optional arg)
+    (interactive "P")
+    (let ((consult-async-input-debounce 0.6)
+          (consult-async-input-throttle 0.7))
+      (consult-notmuch-tree
+       (unless arg "tag:inbox date:1d..")))))
+
+;; Add a notmuch buffer-source to =consult-buffer=. This is provided by
+;; consult-notmuch.
+
+(use-package consult
+  :after (notmuch consult-notmuch)
+  :config
+  (add-to-list 'consult-buffer-sources 'consult-notmuch-buffer-source))
+
+
+(use-package embark
+  :after (notmuch embark)
+  :config
+  (defun embark-notmuch-make-tagger (tags)
+    "Make a function to tag a message with TAGS."
+    (lambda (msg)
+      "Tag a notmuch message using Embark."
+      (when-let ((thread-id (consult-notmuch--thread-id msg)))
+        (notmuch-tag (concat "(" thread-id ")")
+                     (split-string tags)))))
+  (defun embark-export-consult-notmuch (msgs)
+    "Create a notmuch search buffer listing messages."
+    (notmuch-search
+     (concat "("
+             (mapconcat #'consult-notmuch--thread-id msgs " ")
+             ")")))
+  
+  (defun embark-notmuch-tag (msg)
+    (when-let* ((thread-id (consult-notmuch--thread-id msg))
+                (tags (get-text-property 0 'tags msg))
+                (tag-changes (notmuch-read-tag-changes
+                              tags "Tags: "
+                              "+")))
+      (notmuch-tag (concat "(" thread-id ")")
+                   tag-changes)))
+  
+  (defvar embark-notmuch-map 
+    (let ((map (make-sparse-keymap))) 
+      (define-key map (kbd "d") (embark-notmuch-make-tagger "+trash -inbox"))
+      (define-key map (kbd "a") (embark-notmuch-make-tagger "-inbox"))
+      (define-key map (kbd "f") (embark-notmuch-make-tagger "+flagged"))
+      (define-key map (kbd "+") 'embark-notmuch-tag)
+      (define-key map (kbd "-") 'embark-notmuch-tag)
+      map)
+    "Keymap for actions on Notmuch entries.")
+  (add-to-list 'embark-keymap-alist '(notmuch-result . embark-notmuch-map))
+  (add-to-list 'embark-exporters-alist '(notmuch-result . embark-export-consult-notmuch)))
+
+;;;
+
+;; My Notmuch start screen:
+;; https://gist.github.com/vedang/26a94c459c46e45bc3a9ec935457c80f
+(progn
+  (setq notmuch-saved-searches t)
+  (push '(:name "Inbox"
+               ;; :query "tag:inbox AND tag:screened AND tag:unread"
+                :key "i"
+                :search-type 'tree)
+        notmuch-saved-searches)
+  (push '(:name "Previously Seen"
+                :query "tag:screened AND NOT tag:unread"
+                :key "I")
+        notmuch-saved-searches)
+  (push '(:name "Unscreened"
+                :query "tag:inbox AND NOT tag:screened"
+                :key "s")
+        notmuch-saved-searches)
+  (push '(:name "The Feed"
+                :query "tag:thefeed"
+                :key "f"
+                :search-type 'tree)
+        notmuch-saved-searches)
+  (push '(:name "The Papertrail"
+                :query "tag:/ledger/"
+                :key "p")
+        notmuch-saved-searches))
+
+
+(use-package ol-notmuch
+  ;; Integrate with org-mode
+  :ensure t)
+
+(use-package notmuch-maildir
+  ;; visualize maildirs hierarchically in Notmuch's hello buffer.
+  ;; Call notmuch-maildir-inject-section
+  :ensure t)
+
+
+(eval-after-load 'notmuch-show
+  '(progn
+     ;; Bindings in `notmuch-show-mode'
+     (define-key notmuch-show-mode-map (kbd "r")
+                 'notmuch-show-reply)
+     (define-key notmuch-show-mode-map (kbd "R")
+                 'notmuch-show-reply-sender)
+     (define-key notmuch-show-mode-map (kbd "C")
+                 'vedang/notmuch-reply-later)
+
+     ;; Bindings in `notmuch-search-mode'
+     (define-key notmuch-search-mode-map (kbd "r")
+                 'notmuch-search-reply-to-thread)
+     (define-key notmuch-search-mode-map (kbd "R")
+                 'notmuch-search-reply-to-thread-sender)
+     (define-key notmuch-search-mode-map (kbd "/")
+                 'notmuch-search-filter)
+     (define-key notmuch-search-mode-map (kbd "A")
+                 'vedang/notmuch-archive-all)
+     (define-key notmuch-search-mode-map (kbd "D")
+                 'vedang/notmuch-delete-all)
+     (define-key notmuch-search-mode-map (kbd "L")
+                 'vedang/notmuch-filter-by-from)
+     (define-key notmuch-search-mode-map (kbd ";")
+                 'vedang/notmuch-search-by-from)
+     (define-key notmuch-search-mode-map (kbd "d")
+                 'vedang/notmuch-search-delete-and-archive-thread)
+
+     ;; The HEY Workflow Bindings
+     (define-key notmuch-search-mode-map (kbd "S")
+                 'vedang/notmuch-move-sender-to-spam)
+     (define-key notmuch-search-mode-map (kbd "I")
+                 'vedang/notmuch-move-sender-to-screened)
+     (define-key notmuch-search-mode-map (kbd "P")
+                 'vedang/notmuch-move-sender-to-papertrail)
+     (define-key notmuch-search-mode-map (kbd "f")
+                 'vedang/notmuch-move-sender-to-thefeed)
+     (define-key notmuch-search-mode-map (kbd "C")
+                 'vedang/notmuch-reply-later)
+
+     ;; Bindings in `notmuch-tree-mode'
+     (define-key notmuch-tree-mode-map (kbd "C")
+                 'vedang/notmuch-reply-later)))
+
+(defun vedang/notmuch-archive-all ()
+  "Archive all the emails in the current view."
+  (interactive)
+  (notmuch-search-archive-thread nil (point-min) (point-max)))
+
+(defun vedang/notmuch-delete-all ()
+  "Archive all the emails in the current view.
+Mark them for deletion by cron job."
+  (interactive)
+  (notmuch-search-tag-all '("+deleted"))
+  (vedang/notmuch-archive-all))
+
+(defun vedang/notmuch-search-delete-and-archive-thread ()
+  "Archive the currently selected thread. Add the deleted tag as well."
+  (interactive)
+  (notmuch-search-add-tag '("+deleted"))
+  (notmuch-search-archive-thread))
+
+(defun vedang/notmuch-tag-and-archive (tag-changes &optional beg end)
+  "Prompt the user for TAG-CHANGES.
+Apply the TAG-CHANGES to region and also archive all the emails.
+When called directly, BEG and END provide the region."
+  (interactive (notmuch-search-interactive-tag-changes))
+  (notmuch-search-tag tag-changes beg end)
+  (notmuch-search-archive-thread nil beg end))
+
+(defun vedang/notmuch-search-get-from ()
+  "A helper function to find the email address for the given email."
+  (let ((notmuch-addr-sexp (car
+                            (notmuch-call-notmuch-sexp "address"
+                                                       "--format=sexp"
+                                                       "--format-version=1"
+                                                       "--output=sender"
+                                                       (notmuch-search-find-thread-id)))))
+    (plist-get notmuch-addr-sexp :name-addr)))
+
+(defun vedang/notmuch-tree-get-from ()
+  "A helper function to find the email address for the given email.
+Assumes `notmuch-tree-mode'."
+  (plist-get (notmuch-tree-get-prop :headers) :From))
+
+(defun vedang/notmuch-get-from ()
+  "Find the From email address for the email at point."
+  (car (notmuch-clean-address (cond
+                               ((eq major-mode 'notmuch-show-mode)
+                                (notmuch-show-get-from))
+                               ((eq major-mode 'notmuch-tree-mode)
+                                (vedang/notmuch-tree-get-from))
+                               ((eq major-mode 'notmuch-search-mode)
+                                (vedang/notmuch-search-get-from))
+                               ((t nil))))))
+
+(defun vedang/notmuch-filter-by-from ()
+  "Filter the current search view to show all emails sent from the sender of the current thread."
+  (interactive)
+  (notmuch-search-filter (concat "from:" (vedang/notmuch-get-from))))
+
+(defun vedang/notmuch-search-by-from (&optional no-display)
+  "Show all emails sent from the sender of the current thread.
+NO-DISPLAY is sent forward to `notmuch-search'."
+  (interactive)
+  (notmuch-search (concat "from:" (vedang/notmuch-get-from))
+                  notmuch-search-oldest-first
+                  nil
+                  nil
+                  no-display))
+
+(defun vedang/notmuch-tag-by-from (tag-changes &optional beg end refresh)
+  "Apply TAG-CHANGES to all emails from the sender of the current thread.
+BEG and END provide the region, but are ignored. They are defined
+since `notmuch-search-interactive-tag-changes' returns them. If
+REFRESH is true, refresh the buffer from which we started the
+search."
+  (interactive (notmuch-search-interactive-tag-changes))
+  (let ((this-buf (current-buffer)))
+    (vedang/notmuch-search-by-from t)
+    ;; This is a dirty hack since I can't find a way to run a
+    ;; temporary hook on `notmuch-search' completion. So instead of
+    ;; waiting on the search to complete in the background and then
+    ;; making tag-changes on it, I will just sleep for a short amount
+    ;; of time. This is generally good enough and works, but is not
+    ;; guaranteed to work every time. I'm fine with this.
+    (sleep-for 0.5)
+    (notmuch-search-tag-all tag-changes)
+    (when refresh
+      (set-buffer this-buf)
+      (notmuch-refresh-this-buffer))))
+
+(defun vedang/notmuch-add-addr-to-db (nmaddr nmdbfile)
+  "Add the email address NMADDR to the db-file NMDBFILE."
+  (append-to-file (format "%s\n" nmaddr) nil nmdbfile))
+
+(defun vedang/notmuch-move-sender-to-thefeed ()
+  "For the email at point, move the sender of that email to the feed.
+This means:
+1. All new email should go to the feed and skip the inbox altogether.
+2. All existing email should be updated with the tag =thefeed=.
+3. All existing email should be removed from the inbox."
+  (interactive)
+  (vedang/notmuch-add-addr-to-db (vedang/notmuch-get-from)
+                                 (format "%s/thefeed.db" notmuch-hooks-dir))
+  (vedang/notmuch-tag-by-from '("+thefeed" "+archived" "-inbox")))
+
+(defun vedang/notmuch-move-sender-to-papertrail (tag-name)
+  "For the email at point, move the sender of that email to the papertrail.
+This means:
+1. All new email should go to the papertrail and skip the inbox altogether.
+2. All existing email should be updated with the tag =ledger/TAG-NAME=.
+3. All existing email should be removed from the inbox."
+  (interactive "sTag Name: ")
+  (vedang/notmuch-add-addr-to-db (format "%s %s"
+                                         tag-name
+                                         (vedang/notmuch-get-from))
+                                 (format "%s/ledger.db" notmuch-hooks-dir))
+  (let ((tag-string (format "+ledger/%s" tag-name)))
+    (vedang/notmuch-tag-by-from (list tag-string "+archived" "-inbox" "-unread"))))
+
+(defun vedang/notmuch-move-sender-to-screened ()
+  "For the email at point, move the sender of that email to Screened Emails.
+This means:
+1. All new email should be tagged =screened= and show up in the inbox.
+2. All existing email should be updated to add the tag =screened=."
+  (interactive)
+  (vedang/notmuch-add-addr-to-db (vedang/notmuch-get-from)
+                                 (format "%s/screened.db" notmuch-hooks-dir))
+  (vedang/notmuch-tag-by-from '("+screened")))
+
+(defun vedang/notmuch-move-sender-to-spam ()
+  "For the email at point, move the sender of that email to spam.
+This means:
+1. All new email should go to =spam= and skip the inbox altogether.
+2. All existing email should be updated with the tag =spam=.
+3. All existing email should be removed from the inbox."
+  (interactive)
+  (vedang/notmuch-add-addr-to-db (vedang/notmuch-get-from)
+                                 (format "%s/spam.db" notmuch-hooks-dir))
+  (vedang/notmuch-tag-by-from '("+spam" "+deleted" "+archived" "-inbox" "-unread" "-screened")))
+
+(defun vedang/notmuch-reply-later ()
+  "Capture this email for replying later."
+  (interactive)
+  ;; You need `org-capture' to be set up for this to work. Add this
+  ;; code somewhere in your init file after `org-cature' is loaded:
+
+  ;; (push '("r" "Respond to email"
+  ;;         entry (file org-default-notes-file)
+  ;;         "* TODO Respond to %:from on %:subject  :email: \nSCHEDULED: %t\n%U\n%a\n"
+  ;;         :clock-in t
+  ;;         :clock-resume t
+  ;;         :immediate-finish t)
+  ;;       org-capture-templates)
+
+  (org-capture nil "r")
+
+  ;; The rest of this function is just a nice message in the modeline.
+  (let* ((email-subject (format "%s..."
+                                (substring (notmuch-show-get-subject) 0 15)))
+         (email-from (format "%s..."
+                             (substring (notmuch-show-get-from) 0 15)))
+         (email-string (format "%s (From: %s)" email-subject email-from)))
+    (message "Noted! Reply Later: %s" email-string)))
+
+;; Sign messages by default.
+(add-hook 'message-setup-hook 'mml-secure-sign-pgpmime)
+
+(setq notmuch-address-selection-function
+      (lambda (prompt collection initial-input)
+        (completing-read prompt
+                         (cons initial-input collection)
+                         nil
+                         t
+                         nil
+                         'notmuch-address-history)))
+
+(defun disable-auto-fill ()
+  "I don't want `auto-fill-mode'."
+  (auto-fill-mode -1))
+
+(add-hook 'message-mode-hook 'disable-auto-fill)
+
+
+
+(provide 'setup-notmuch)
+;; setup-notmuch.el ends here

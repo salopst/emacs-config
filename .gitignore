@@ -1,0 +1,42 @@
+# Emacs compiled files
+*.elc
+*.eln
+*.so
+
+./jj
+
+# my cockups
+*-borked
+
+eln-cache/
+elpa/ 
+
+tree-sitter/
+transient/
+sjy2-cache/
+cache/
+var/
+themes/
+
+image-dired/
+auto-save-list/
+backups/
+recentf
+history
+places
+session*
+.session
+projectile-bookmarks.eld
+.projectile
+
+package-lock.json
+.mc-lists.el
+
+# some provate data
+setup-mu4e.el
+setup-email.el
+
+# Backup files
+*~
+\#*\#
+.\#*

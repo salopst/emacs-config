@@ -1,0 +1,6 @@
+[Unit]
+Description=MBsync service
+
+[Service]
+Type=oneshot
+ExecStart=/usr/bin/mbsync -Va -c $XDG_CONFIG_HOME/mbsync/mbsyncrc
