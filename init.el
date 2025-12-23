@@ -466,62 +466,87 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 ;; Fonts (centralised) ----------------------------------------------------
 (defgroup sjy2-fonts nil
-"Font config for the sjy2 Emacs setup."
-:group 'faces)
-(defcustom sjy2/default-font "Iosevka"
-"Default UI/monospace font family."
-:type 'string)
-(defcustom sjy2/fixed-pitch-font "Victor Mono"
-"Font used for fixed-pitch buffers (code/term)."
-:type 'string)
-(defcustom sjy2/variable-pitch-font "Iosevka"
-"Font used for variable-pitch/text buffers."
-:type 'string)
-(defcustom sjy2/mode-line-font "JetBrains Mono"
-"Font used for the mode-line."
-:type 'string)
-(defcustom sjy2/font-size 14
-"Base font size (pt)."
-:type 'integer)
+  "Font config for the sjy2 Emacs setup."
+  :group 'faces)
 
-;; Multilingual fontsets (Arabic, Devanagari) -----------------------------
+(defcustom sjy2/default-font "Iosevka"
+  "Default UI/monospace font family."
+  :type 'string)
+
+(defcustom sjy2/fixed-pitch-font "Victor Mono"
+  "Font used for fixed-pitch buffers (code/term)."
+  :type 'string)
+
+(defcustom sjy2/variable-pitch-font "Iosevka"
+  "Font used for variable-pitch/text buffers."
+  :type 'string)
+
+(defcustom sjy2/mode-line-font "JetBrains Mono"
+  "Font used for the mode-line."
+  :type 'string)
+
+(defcustom sjy2/font-size 14
+  "Base font size (pt)."
+  :type 'integer)
+
+;; Multilingual fonts with custom sizes
 (defcustom sjy2/arabic-font "Noto Sans Arabic"
-"Preferred Arabic script font (covers Arabic, Persian, Urdu)."
-:type 'string)
+  "Preferred Arabic script font."
+  :type 'string)
+
+(defcustom sjy2/arabic-size 30
+  "Font size for Arabic script."
+  :type 'integer)
+
 (defcustom sjy2/hebrew-font "Noto Sans Hebrew"
   "Preferred Hebrew script font."
   :type 'string)
+
+(defcustom sjy2/hebrew-size 28
+  "Font size for Hebrew script."
+  :type 'integer)
+
 (defcustom sjy2/devanagari-font "Noto Sans Devanagari"
-"Preferred Devanagari font (Hindi)."
-:type 'string)
-(defcustom sjy2/multilingual-size 46
-"Font height for non-Latin scripts (10x scale used earlier)."
-:type 'integer)
+  "Preferred Devanagari font."
+  :type 'string)
 
+(defcustom sjy2/devanagari-size 30
+  "Font size for Devanagari script."
+  :type 'integer)
 
-;; Function to apply the multilingual fonts and sizes
+(defcustom sjy2/greek-font "Noto Serif"
+  "Preferred font for polytonic Greek."
+  :type 'string)
+
+(defcustom sjy2/greek-size 26
+  "Font size for polytonic Greek."
+  :type 'integer)
+
+;; Set default Latin font FIRST
+(set-face-attribute 'default nil
+                    :family sjy2/default-font
+                    :height (* sjy2/font-size 10)) ; height is in 1/10pt units
+
 (defun sjy2/apply-multilingual-fonts ()
-  "Apply the custom fonts and sizes for specific non-Latin scripts."
+  "Apply custom fonts and sizes for specific non-Latin scripts."
+  ;; Arabic
+  (set-fontset-font t 'arabic
+                    (font-spec :family sjy2/arabic-font :size sjy2/arabic-size)
+                    nil 'prepend)
+  ;; Hebrew
+  (set-fontset-font t 'hebrew
+                    (font-spec :family sjy2/hebrew-font :size sjy2/hebrew-size)
+                    nil 'prepend)
+  ;; Devanagari
+  (set-fontset-font t 'devanagari
+                    (font-spec :family sjy2/devanagari-font :size sjy2/devanagari-size)
+                    nil 'prepend)
+  ;; Greek (including polytonic)
+  (set-fontset-font t 'greek
+                    (font-spec :family sjy2/greek-font :size sjy2/greek-size)
+                    nil 'prepend))
 
-  ;; Apply Arabic Font
-  (set-fontset-font "fontset-default" 'arabic sjy2/arabic-font nil 'append)
-  ;; Apply Devanagari Font
-  (set-fontset-font "fontset-default" 'devanagari sjy2/devanagari-font nil 'append)
-  
-  ;; >>> NEW HEBREW FONT SETTING <<<
-  (set-fontset-font "fontset-default" 'hebrew sjy2/hebrew-font nil 'append)
-
-  ;; Apply the custom size to all non-Latin fonts (if needed)
-  ;; The scaling factor (sjy2/multilingual-size) should be applied 
-  ;; to the default font height (sjy2/font-size)
-
-  (let ((multilingual-height (floor (* sjy2/font-size 10)))) ; Calculate 10x size (140) if sjy2/multilingual-size is 10
-    (set-fontset-font "fontset-default" 'arabic sjy2/arabic-font nil 'append multilingual-height)
-    (set-fontset-font "fontset-default" 'devanagari sjy2/devanagari-font nil 'append multilingual-height)
-    (set-fontset-font "fontset-default" 'hebrew sjy2/hebrew-font nil 'append multilingual-height)
-    ))
-
-;; Execute the function upon startup
+;; Apply on startup
 (sjy2/apply-multilingual-fonts)
 
 
@@ -583,6 +608,11 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
                               :foreground "#E4C869" :weight bold)))))
 
 ;;; ———————————————————————— 06 Dired ————————————————————————
+(use-package dired-filter
+  ;; https://github.com/Fuco1/dired-hacks?tab=readme-ov-file#packages
+  :ensure t
+  :hook (dired-mode . dired-filter-mode))
+
 (use-package dired
   :ensure nil
   :custom
