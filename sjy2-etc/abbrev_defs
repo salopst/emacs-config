@@ -1,0 +1,21 @@
+;;-*-coding: utf-8;-*-
+
+;;; (KEYWORD EXPANSION MODE [:PROPERTY VALUE]...)
+;;; if mode == t apply globally
+
+(define-abbrev-table 'global-abbrev-table
+  '(
+    ("emace" "Emacs" t  :count 0 :case-preserve t)
+    ("linu;" "Linux" t  :count 0 :case-preserve t)
+    ("unix" "UNIX" t  :count 0 :case-preserve t)
+    ("adn" "and" t :count 0 :case-preserve t)
+    ("futher" "further" t :count 0 :case-preserve t)
+    ("taht" "that" t :count 0 :case-preserve t)
+    ("becuase" "because" t :count 0 :case-preserve t)
+    ("waht" "what" t :count 0 :case-preserve t)
+    ("witout" "without" t :count 0 :case-preserve t)
+    ("commedic" "comedic" t :count 0 :case-preserve t)
+    (":lol:" "🤣" t :count 0 :case-preserve t)
+    ("paper mache" "Papier-mâché" t :count 0  :case-preserve t)
+   ))
+

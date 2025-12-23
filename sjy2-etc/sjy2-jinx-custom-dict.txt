@@ -1,0 +1,74 @@
+;;-*-coding: utf-8;-*-
+;; Jinx Custom Dictionary 2025-12-10
+;; Unique words, one per line.
+
+;;; RANDO
+Maranatha              ; Aramaic "Come, O Lord! μαράνα θά" (1 Cor 16:22)
+
+
+;;; THEOLOGY
+anamnesis              ; liturgical remembering
+antinomian             ; against moral law
+apokatastasis          ; universal restoration
+apophatic              ; theology via negation (what God is not)
+Christotokos           ; Christ-bearer
+consubstantiation      ; presence with elements
+dyophysite             ; person holding Christ has two natures
+dyophysitism           ; doctrine of two natures of Christ
+eisegesis              ; reading into the text
+epiclesis              ; invocation of Holy Spirit in Eucharist
+eschatology            ; study of the end times
+eschaton               ; end point of history
+exegesis               ; drawing out meaning from the text
+hamartiology           ; study of sin
+henotheism             ; worship of one god without denying others
+henotheistic
+hermeneutics           ; interpretation theory
+heterousios            ; of different substance
+hesychasm              ; Eastern contemplative prayer tradition
+homoiousios            ; of similar substance (corrected spelling)
+homoiouisios           ; (legacy variant spelling)
+homousios              ; of same substance (Nicene Creed)
+homoousios
+hypostasis             ; individual existence/substance
+infra                  ; below (e.g. infralapsarian)
+kenosis                ; self-emptying of Christ
+lapsarian              ; relating to the fall
+logos                  ; divine reason/word
+monophysite
+monophysitism          ; Christ has a single (divine) nature
+noetic                 ; relating to the mind or intellect
+nous                   ; mind, intellect
+ousia                  ; essence, being
+paraclete              ; advocate; title for the Holy Spirit
+parousia               ; second coming of Christ
+pelagianism            ; denies original sin
+perichoresis           ; mutual indwelling of Trinity
+Peshitta               ; Syriac Bible (transl. from Herew Tanakh and GNT)
+pleroma                ; fullness of God
+prosopon               ; person, mask
+semi-pelagian          ; middle ground on grace/free will
+soteriology            ; study of salvation
+supra                  ; above/beyond (e.g. supralapsarian)
+synergism              ; cooperation of human & divine wills
+theosis                ; deification, becoming like God
+theotokos              ; God-bearer (title for Mary)
+transubstantiation     ; bread/wine become body & blood
+      
+
+;;; TECHNOLOGY
+dabbrev
+daemonize
+modeline
+emacs
+modus
+shortcode
+tempel
+vertico
+jinx
+Gitlab
+Github
+markdownify
+monorepo
+subresource
+webp

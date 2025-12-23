@@ -1,0 +1,238 @@
+#+TITLE: README
+#+DATE: <2022-12-06 Mon>
+#+AUTHOR: ct400
+#+KEYWORDS: Emacs config
+#+HTML_HEAD:
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="css/gongzhit-org-min.css" />
+#+HTML_HEAD_EXTRA: <link rel="stylesheet" type="text/css" href="css/prism.css" />
+#+HTML_HEAD_EXTRA: <script src="js/prism.js">
+#+OPTIONS: toc:nil num:nil
+
+* Personal Emacs init.el
+
+Nothing much to say about it, really. Moving from a  more complex
+org-based setup to something much simpler. But then here I am explaining
+parts of the damned thing, so why not just tangle like in the old
+days?
+
+** TODO:
+- chip away at gruber-shrews and glaukopis.
+  
+* Some Keybinds
+Je suis un Dummkopf agus siempre me olvido, so…
+** Remaps/non-standard
+| C-w              |   | backwards-kill-word                                         |
+| C-z              |   | undo                                                        |
+| C-x m            |   | alias for M-x                                               |
+| C-x C-m          |   | same                                                        |
+| M-<up            |   | move line (code from emacs wiki)                            |
+| M-s<up           |   | multiple cursors                                            |
+| C-M  ,           |   | multiple cursors                                            |
+| C-M =            |   | increase/decrease font (from default-text-scale package)    |
+| C-x o x <win-ID> |   | deletes window                                              |
+| M-o x <win-ID>   |   | same  (courtesy of ace-window)                              |
+| C-x u            |   | undo-tree-visualize                                         |
+| C-p              |   | up/down tree; d - diff; t - timestamps; q - quit            |
+| C-/              |   | (un)comment region; defaullt M-;                            |
+| C-q              |   | emacs-surround region w/ chars                              |
+| C-q d <whatever> |   | delete <whatever>                                           |
+| C-q i <old><new> |   | swapsies                                                    |
+| C-x p            |   | proced                                                      |
+| C-x C-b          |   | ibuffer replaces buffer-menu                                |
+| C-c C-w c        |   | sjy2/compress-spaces-in-region                              |
+| C-c C-w l        |   | sjy2/delete-leading-whitespace-in-region                    |
+| C-c C-w =        |   | ew/resize-window                                            |
+| M-g              |   | ibuffer-jump-to-buffer..jump from ibuffer listing (C-x C-b) |
+
+- C-c M-d   -- custom copy line, insert below
+  - C-a C-SPC C-e C-w C-y -- does same thing Emacs-q
+- M-n/M-p   -- mikeyp's smartscan -- search back/forward for symbol at point
+
+** Standard
+- M-h       -- Emacs-q mark-paragraph / org-mark-element
+- C-w         -- in isearch expands search term to thing at that match
+- C-x C-j     -- Jump to this files' current directory
+- M-y         -- Cycle last paste through previous kills
+- C-x C-y     -- Choose what to paste from previous kills
+- C-@         -- Mark stuff quickly. Press multiple times
+- C-x C-i     -- Go to symbol
+- C-v         -- scroll-up
+- M-v         -- scroll-down
+- C-M-        -- scroll-other-window
+- M-- C-M-v   -- scroll-other-window with negative argument (C-- and C-M--) reverses
+
+| C-x C-w           |   | write file (save as)                               |
+| C-x C-=           |   | inc font size in window                            |
+| C-x C--           |   | dec font size in window                            |
+| C-x 0             |   | back to default size                               |
+| C-M = / -         |   | inc / dec font size all windows (package)          |
+| C-x <TAB> <arrow> |   | indent/deindent                                    |
+| M-y               |   | access to kill ring                                |
+| M-!               |   | shell-command (Grrr. ALways forget this)           |
+| C-x \             |   | align-regexp (what formatted this)                 |
+| M-x               |   | describe-variable <custom-enabled-themes>          |
+| M-x               |   | describe-personal-keybindings                      |
+| M-a               |   | start of sentence                                  |
+| M-e               |   | end of sentence                                    |
+| C-x 8 e           |   | emoji                                              |
+| C-]               |   | abort-recursive-edit                               |
+| M-d               |   | forward kill-word                                  |
+| C-/               |   | undo                                               |
+| M-g M-g 42        |   | goto-line 42                                       |
+| M-.               |   | do to definition in source code                    |
+| C-M s / r         |   | isearch-forward-regexp /   isearch-backward-regexp |
+|                   |   |                                                    |
+
+  ;; this lets us have long lines go off the side of the screen instead of hosing up the ascii art
+- (global-set-key "\C-x\C-l" 'toggle-truncate-lines)
+- (global-set-key "\C-c\C-d" "\C-a\C- \C-n\M-w\C-y")	; Duplicate a whole line
+- (global-set-key (kbd "C-S-R") 'rename-file)
+
+*** Of Rectangles and registers
+Been confusing rectangle and register commands recently in light of using counsel. RESFRESH the basics!
+
+- (set-register ?c (cons 'file "~/.config/emacs/init.el")) 
+- (set-register ?s (cons 'file "~/.config/emacs/scratch.md")) 
+
+ Rectangles:
+- C-x r k (kill)
+- C-x r d (delete)
+- C-x r c (clear) replaces content with spaces
+- C-x r o (open) shifst to the right
+- C-x r t add string
+
+Registers
+- C-x r j c     -- register jump
+- C-x r s r     -- Copy region into register r (copy-to-register). 
+- C-x r i r     -- Insert text from register r (insert-register).
+- C-x r SPC SPC -- Record position of point and the current buffer in register SPC (point-to-register). 
+- C-x r j SPC   -- Jump to the position and buffer saved in register  (jump-to-register). 
+
+** Much used extended commands
+
+
+
+| M-x qrr regexp-replace |       |                          |
+| M-x untabify           |       | tabs to spaces in region |
+| M-x fill-column        | C-x f |                          |
+| M-x whitespace-mode    |       |                          |
+| M-x describe-mode      | C-h m |                          |
+| M-x overwrite-mode     |       |                          |
+| M-x autofill-mode      |       |                          |
+| M-x visual-line-mode   |       |                          |
+
+** Orgmode
+
+| M-s <arrow> |   | org-shiftmetaup drags line up in =org-mode-map= |
+| M-<RET>     |   | org insert heading                              |
+| C-<RET>     |   | new heading @ end of subtree                    |
+| C-c C-t     |   | change TODO status                              |
+ 
+* Since this is a new repo— how did I set it up?
+- New account at github.com
+- Create repo called /emacs/
+- git init from magit =M-x magit=
+- Create standard /.gitignore/ to exlude cruft left by emacs and some general personal stuff
+- Create this README.org
+- Generate keys
+  
+  #+begin_src sh
+    $ cd ~/.ssh
+    ssh-keygen -t rsa -C "ct400@protonmail.com" -f "ct400"
+    ssh-add  ~/.ssh/ct400
+  #+end_src
+
+- Go to github and add the content of the pub key created above.
+- Create ~/.ssh/config file and adding details for nth github a/c:
+
+#+begin_example
+# 2022-12-05
+#" Host" can be anything memorable
+Host github-ct400
+    HostName github.com
+    User git
+    IdentityFile ~/.ssh/ct400-github
+    IdentitiesOnly yes
+#+end_example
+
+Test with:
+
+#+begin_src sh
+ssh -T git@github-ct400
+#==> Hi ct400! You've successfully authenticated...
+#+end_src
+
+Add the following to .git/config:
+
+#+begin_example
+[user]
+## this is local and has nothing to do with online gits...
+## could be "Mickey Mouse" for all github cares
+    name = ct400
+    email = centzon@protonmail.com
+    username = ct400
+    #IdentityFile    = ~/.ssh/ct400-github
+#+end_example
+
+Connect local repo with the remote. Github will offer a default url to
+add. In this case it was =git remote add origin git@github-ct400:ct-400/emacs.git= BUT we should use the host specified in our ~/.ssh/config, so:
+
+Check for existing remotes with =git remote -v=, delete any bad ones w/ =git remote rm origin=
+#+begin_src sh
+  git branch -M main  # rename from "master" for sensitivy seasons.
+  git remote add origin git@github-ct400:ct400/emacs.git
+  git push -u origin main
+#+end_src
+
+** 🎲🎲 Dice!
+
+* Some CSS for org-html-dispatch
+- <https://gongzhitaao.org/orgcss/> ← Like this one.
+- <https://github.com/fniessen/org-html-themes> ← "Read-the-docs" clone here
+  - Quick use: =#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-readtheorg.setup=
+- <https://github.com/thomasf/solarized-css>
+- <https://github.com/jessekelly881/Imagine>
+- <https://github.com/jessekelly881/Rethink>
+  
+* Play around with overriding gruber-shrews
+
+** Useful resources for themeing
+*** Emacs-local
+- =M-x describe-face=       -- name of face at point
+- =M-x list-faces-display=  -- list all faces in use in current buffer
+- =M-x list-colors-display= -- colours "known"  to Emacs
+
+*** Online
+*rainbow-mode* -- https://jblevins.org/log/rainbow-mode
+Show hex (and other) colours in buffer
+
+*autothemer*   -- https://github.com/jasonm23/autothemer
+Autothemer provides autothemer-deftheme a macro wrapper for deftheme and custom-theme-set-faces which creates a custom color theme.
+
+- <https://www.gnu.org/software/emacs/manual/html_node/elisp/Face-Attributes.html>
+- <https://notes.neeasade.net/color-spaces.html>
+
+  
+
+*** TODO: fold into gruber-shrews-theme.el
+
+#+begin_src emacs-lisp
+  (custom-set-faces 
+   '(Info-quoted       ((t (:foreground "#F15952" :family "Hack-13"))))
+   '(minibuffer-prompt ((t (:foreground "#4B919E" :family "Menlo-14"))))
+
+   `(org-block            ((t (:background "#002244" :foreground "#96A6C8"))))
+   `(org-block-begin-line ((t (:foreground "#569034")))) ;; "#CC8C3C"
+   `(org-block-end-line   ((t (:foreground "#569034"))))
+
+   `(org-level-1  ((t (:foreground "#4B919E"  :height 1.3 :family "Menlo")))) ;; :weight bold
+   `(org-level-2  ((t (:foreground "#96A6C8"  :height 1.3 :family "Iosevka"))))
+   `(org-level-3  ((t (:foreground "#CC8C3C"  :height 1.2 :family "Menlo"))))
+   `(org-level-4  ((t (:foreground "#F7BA00"  :height 1.2 :family "Iosevka"))))
+   `(org-level-5  ((t (:foreground "#569034"  :height 1.1 :family "Menlo"))))
+   `(org-level-6  ((t (:foreground "#87CF70"  :height 1.1 :family "Iosveka"))))
+   `(org-special-keyword  ((t (:foreground "red"))))
+  ;; `(mode-line ((t (:background "grey75" :foreground "black" :box (:line-width -1 :style released-button)))))
+   '(mode-line ((t (:slant italic :weight light :box (:line-width -1 :style released-button)))))
+   )
+#+end_src
