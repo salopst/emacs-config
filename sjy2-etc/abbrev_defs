@@ -6,7 +6,7 @@
 (define-abbrev-table 'global-abbrev-table
   '(
     ("emace" "Emacs" t  :count 0 :case-preserve t)
-    ("linu;" "Linux" t  :count 0 :case-preserve t)
+    ("linux;" "Linux" t  :count 0 :case-preserve t)
     ("unix" "UNIX" t  :count 0 :case-preserve t)
     ("adn" "and" t :count 0 :case-preserve t)
     ("futher" "further" t :count 0 :case-preserve t)
@@ -15,7 +15,9 @@
     ("waht" "what" t :count 0 :case-preserve t)
     ("witout" "without" t :count 0 :case-preserve t)
     ("commedic" "comedic" t :count 0 :case-preserve t)
-    (":lol:" "🤣" t :count 0 :case-preserve t)
+    (":lol" "🤣" t :count 0 :case-preserve t)
+    (":uni" "🦄" t :count 0 :case-preserve t)
+    (":poo" "💩" t :count 0 :case-preserve t)
     ("paper mache" "Papier-mâché" t :count 0  :case-preserve t)
    ))
 
