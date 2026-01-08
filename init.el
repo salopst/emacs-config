@@ -196,12 +196,12 @@
 
 (setq-default cursor-type 'box)     ; As RMS intended
 (add-to-list 'default-frame-alist '(cursor-type . box))
-(add-hook 'org-mode-hook
-          (lambda ()
-            (setq-local cursor-type 'box)))
-(add-hook 'org-src-mode-hook
-          (lambda ()
-            (setq-local cursor-type 'box)))
+;; FUCKING BAR CURSOR IN ORG!!!!!!!!!
+(with-eval-after-load 'org
+  (defun sjy2/org-fix-cursor ()
+    "Fix cursor to box in org-mode."
+    (setq cursor-type 'box))
+    (add-hook 'org-mode-hook #'sjy2/org-fix-cursor 90))
 
 ;;; ———————————————————————— 04 Keybindings ————————————————————————
 (keymap-set key-translation-map "ESC" "C-g")
@@ -245,8 +245,9 @@
 (keymap-global-set "s-O"        #'crux-smart-open-line-above)
 (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
 (global-set-key [remap kill-whole-line]        #'crux-kill-whole-line)
-(keymap-set org-mode-map "M-s-<up>"            #'org-move-subtree-up)
-(keymap-set org-mode-map "M-s-<down>"          #'org-move-subtree-down)
+(with-eval-after-load 'org
+  (keymap-set org-mode-map "M-s-<up>" #'org-move-subtree-up)
+  (keymap-set org-mode-map "M-s-<down>" #'org-move-subtree-down))
 
 (global-set-key (kbd "C-x C-d") 'dired) ; is usually list-directory
 ;; C-j is usually bound to org-return-and-maybe-indent in org-mode
