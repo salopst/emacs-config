@@ -79,7 +79,7 @@
   (message "sjy2-gptel loaded"))
 
 ;;; TODO : Stick all the direds in this file?
-  (use-package sjy2-dired-open-with
+(use-package sjy2-dired-open-with
   :load-path "~/.config/emacs/sjy2-lisp/"
   :demand t
   :config
@@ -113,9 +113,9 @@
       auto-save-file-name-transforms
       `((".*" ,(expand-file-name "auto-save/" sjy2-cache-dir) t))
 
-     backup-directory-alist `(("." . ,(expand-file-name "backups/" sjy2-cache-dir)))
-     make-backup-files t backup-by-copying t version-control t
-     kept-new-versions 10 kept-old-versions 2 delete-old-versions t)
+      backup-directory-alist `(("." . ,(expand-file-name "backups/" sjy2-cache-dir)))
+      make-backup-files t backup-by-copying t version-control t
+      kept-new-versions 10 kept-old-versions 2 delete-old-versions t)
 
 ;;; ———————————————————————— 03 Modern essentials  ————————————————————————
 (setq inhibit-startup-screen t)
@@ -171,6 +171,9 @@
 (setq recentf-max-saved-items   500)
 (setq recentf-max-menu-items    100)
 (setq recentf-max-saved-items   100)
+(setq recentf-auto-cleanup      nil)
+(setq recentf-save-file-modes   nil)
+
 (setq split-width-threshold     1)           ; prefer side-by-side splits
 (setq scroll-error-top-bottom   t)
 (setq scroll-preserve-screen-position       t)
@@ -193,6 +196,12 @@
 
 (setq-default cursor-type 'box)     ; As RMS intended
 (add-to-list 'default-frame-alist '(cursor-type . box))
+(add-hook 'org-mode-hook
+          (lambda ()
+            (setq-local cursor-type 'box)))
+(add-hook 'org-src-mode-hook
+          (lambda ()
+            (setq-local cursor-type 'box)))
 
 ;;; ———————————————————————— 04 Keybindings ————————————————————————
 (keymap-set key-translation-map "ESC" "C-g")
@@ -203,6 +212,7 @@
 (keymap-global-set "C-/"        #'comment-line)
 (keymap-global-set "C-x C-m"    #'execute-extended-command)
 (keymap-global-set "C-c C-m"    #'execute-extended-command)
+
 (keymap-global-set "C-="        #'text-scale-increase)
 (keymap-global-set "C--"        #'text-scale-decrease)
 (keymap-global-set "C-v"        #'yank) ; from CUA; was scroll-up; default C-y
@@ -223,6 +233,7 @@
 (keymap-global-set "C-c t t"    #'sjy2/toggle-transparency)
 (keymap-global-set "C-g"        #'prot/keyboard-quit-dwim)
 (keymap-global-set "C-x o"      #'sjy2/cycle-windows-and-frames)
+(keymap-global-set "C-x C-r"    #'recentf-open) ; override `find-file-read-only'
 (keymap-global-set "M-u"        #'sjy2/cycle-case-region-or-word)
 (keymap-global-set "C-c d"      #'duplicate-dwim) ; Emacs default version of the crux
 ;;(keymap-global-set "C-c d"      #'crux-duplicate-current-line-or-region)
@@ -234,6 +245,9 @@
 (keymap-global-set "s-O"        #'crux-smart-open-line-above)
 (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
 (global-set-key [remap kill-whole-line]        #'crux-kill-whole-line)
+(keymap-set org-mode-map "M-s-<up>"            #'org-move-subtree-up)
+(keymap-set org-mode-map "M-s-<down>"          #'org-move-subtree-down)
+
 (global-set-key (kbd "C-x C-d") 'dired) ; is usually list-directory
 ;; C-j is usually bound to org-return-and-maybe-indent in org-mode
 ;; C-j is usually bound to electric-newline-and-maybe-indent in elisp mode
@@ -300,7 +314,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (doom-modeline-height 30)
   (doom-modeline-bar-width 6))
 
-  
+
 ;; replaces minions for Emacs 31+ ???
 ;; (setq mode-line-collapse-minor-modes t)
 (use-package minions
@@ -317,7 +331,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :hook (after-init . keycast-header-line-mode)   ; just turn it on
   :custom
   (keycast-substitute-alist
-     '((self-insert-command . "")))       ; ignore typing letters/numbers
+   '((self-insert-command . "")))       ; ignore typing letters/numbers
   (keycast-separator-width 20)
   (keycast-hide-timeout 5000))
 
@@ -390,8 +404,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (bg-mode-line-inactive ,(cdr (assoc 'sjy2-modline-inactive  sjy2-modus-palette)))
     (bg-hl-line            ,(cdr (assoc 'sjy2-line-highlight    sjy2-modus-palette)))
     ;; Suggested additions for consistency
-   ;; (string                ,(cdr (assoc 'sjy2-wisteria          sjy2-modus-palette)))
-   ;; (docstring             ,(cdr (assoc 'sjy2-success           sjy2-modus-palette)))
+    ;; (string                ,(cdr (assoc 'sjy2-wisteria          sjy2-modus-palette)))
+    ;; (docstring             ,(cdr (assoc 'sjy2-success           sjy2-modus-palette)))
     (fnname                ,(cdr (assoc 'sjy2-eyes              sjy2-modus-palette)))
     (variable              ,(cdr (assoc 'sjy2-fg-2              sjy2-modus-palette)))
     (fg-hl-line            ,(cdr (assoc 'sjy2-fg                sjy2-modus-palette)))
@@ -438,7 +452,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
      (org-level-3 ((t (:foreground ,(cdr (assoc 'sjy2-wisteria    sjy2-modus-palette))))))
      (org-level-4 ((t (:foreground ,(cdr (assoc 'sjy2-niagara     sjy2-modus-palette))))))
      (org-level-5 ((t (:foreground ,(cdr (assoc 'sjy2-quartz      sjy2-modus-palette))))))
-    ))
+     ))
   ;; --- NEW CODE END ---
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs   t)
@@ -552,35 +566,35 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 ;; VTerm per-buffer faces -------------------------------------------------
 (defun sjy2/vterm-buffer-appearance ()
-"Apply vterm-specific face tweaks to the current buffer only."
+  "Apply vterm-specific face tweaks to the current buffer only."
   (when (derived-mode-p 'vterm-mode)
-;; buffer-local face background/foreground via `buffer-face-mode'
+    ;; buffer-local face background/foreground via `buffer-face-mode'
     (setq buffer-face-mode-face `(:background "#574F4A" :foreground "#95A99F"))
     (buffer-face-mode 1)
-;; fringe and cursor adjustments (global faces changed only locally where safe)
+    ;; fringe and cursor adjustments (global faces changed only locally where safe)
     (set-face-attribute 'fringe nil :background "#574F4A")
     (set-face-attribute 'cursor nil :background "white")
-;; hl-line disabled for vterm to avoid clash
+    ;; hl-line disabled for vterm to avoid clash
     (when (boundp 'hl-line-mode)
       (hl-line-mode -1))))
 (add-hook 'vterm-mode-hook #'sjy2/vterm-buffer-appearance)
 
 ;; Only run icon setup if fonts are present. This avoids warnings on headless installs.
 (use-package nerd-icons
-:defer t
-:custom (nerd-icons-font-family "Symbols Nerd Font Mono")
-:config
+  :defer t
+  :custom (nerd-icons-font-family "Symbols Nerd Font Mono")
+  :config
   (when (member "Symbols Nerd Font Mono" (font-family-list))
-;; Prepend to unicode fontset so icons display robustly
+    ;; Prepend to unicode fontset so icons display robustly
     (set-fontset-font t 'unicode "Symbols Nerd Font Mono" nil 'prepend)))
 
 (use-package all-the-icons
-:defer t
-:custom (all-the-icons-scale-factor 1.0)
-:config
+  :defer t
+  :custom (all-the-icons-scale-factor 1.0)
+  :config
   (when (member "Symbols Nerd Font Mono" (font-family-list))
     (set-fontset-font t 'unicode "Symbols Nerd Font Mono" nil 'prepend)))
-    
+
 ;;;; Mixed-pitch (for prose) -------------------------------------------------
 (use-package mixed-pitch
   :defer nil
@@ -603,9 +617,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
  '(font-lock-comment-face ((t (:slant italic))))
  '(font-lock-comment-face ((t (:foreground "#95A99F" :slant italic))))
  '(term                   ((t (:background "#002244" 
-                               :foreground "#95A99F" :weight bold))))
+					   :foreground "#95A99F" :weight bold))))
  '(keycast-key            ((t (:background "#6D7587" 
-                              :foreground "#E4C869" :weight bold)))))
+					   :foreground "#E4C869" :weight bold)))))
 
 ;;; ———————————————————————— 06 Dired ————————————————————————
 (use-package dired-filter
@@ -665,9 +679,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :after dired
   :bind (:map dired-mode-map
-         ("<tab>" . dired-subtree-toggle)      ; simple & obvious
-         ("<backtab>" . dired-subtree-remove)
-         ("i" . dired-subtree-insert))
+              ("<tab>" . dired-subtree-toggle)      ; simple & obvious
+              ("<backtab>" . dired-subtree-remove)
+              ("i" . dired-subtree-insert))
   :custom
   (dired-subtree-line-prefix "    ")
   (dired-subtree-use-backgrounds nil))
@@ -676,7 +690,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 (use-package dired-git-info
   :ensure t
   :bind (:map dired-mode-map
-         (")" . dired-git-info-mode)))
+              (")" . dired-git-info-mode)))
 
 ;; Optional: fd-dired – super fast search → dired buffer (highly recommended)
 (use-package fd-dired
@@ -687,7 +701,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;;; ———————————————————————— 07 SIMPLE Packages ————————————————————————
 (use-package crux
   :bind (("C-a" . crux-move-beginning-of-line)
-         ("C-k" . crux-smart-kill-line)
+         ;; ("C-k" . crux-smart-kill-line)
          ("C-^" . crux-top-join-line)))
 
 (use-package multiple-cursors
@@ -732,8 +746,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
           (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
           (delete 'markdown treesit-auto-lang-recipe-alist)
           (delete 'markdown-inline treesit-auto-lang-recipe-alist)
-  :config
-  (global-treesit-auto-mode))))
+	  :config
+	  (global-treesit-auto-mode))))
 
 
 
@@ -763,7 +777,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :hook ((prog-mode . diff-hl-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
   :config (diff-hl-flydiff-mode 1)
-          (unless (display-graphic-p) (diff-hl-margin-mode 1)))
+  (unless (display-graphic-p) (diff-hl-margin-mode 1)))
 
 
 ;; Run Emacs Lisp functions asynchronously in separate Emacs processes
@@ -1121,7 +1135,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (vertico-count 15)
   (vertico-resize t)
   (vertico-scroll-margin 4)
-    (completion-ignore-case t)
+  (completion-ignore-case t)
   (read-buffer-completion-ignore-case t)
   (read-file-name-completion-ignore-case t)
   (enable-recursive-minibuffers t)
@@ -1173,7 +1187,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (completion-category-overrides 
    '((file (styles basic partial-completion))
      (eglot (styles basic))))
-(orderless-component-separator #'orderless-escapable-split-on-space)
+  (orderless-component-separator #'orderless-escapable-split-on-space)
   (completion-styles '(orderless flex basic))
   (completion-category-defaults nil)
   (completion-category-overrides '((file (styles basic partial-completion)))))
@@ -1245,17 +1259,17 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (interactive)
     (display-buffer ilog-buffer-name)))
 
-    
+
 ;;; ———————————————————————— 08 Completions ————————————————————————
 (use-package tempel
   :demand t
   :custom
   (tempel-trigger-prefix "<")      ; Type "<" to trigger template menu
   :bind (:map sjy2/prefix-map
-         ("t c" . tempel-complete) ; M-m t c
-         ("t i" . tempel-insert)   ; M-m t i
-         ("t e" . tempel-expand)   ; Expand template
-         ("t n" . sjy2/tempel-expand-or-next))
+              ("t c" . tempel-complete) ; M-m t c
+              ("t i" . tempel-insert)   ; M-m t i
+              ("t e" . tempel-expand)   ; Expand template
+              ("t n" . sjy2/tempel-expand-or-next))
   :config
   (setopt tempel-path (expand-file-name "tempel-snippets.el" sjy2-etc-dir))
   
@@ -1270,11 +1284,12 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 (setq-default abbrev-mode t) ; Turn on abbrev mode by default
 (setopt abbrev-file-name (expand-file-name "abbrev_defs" sjy2-etc-dir))
 
+(abbrev-table-put global-abbrev-table :regexp "\\(?:^\\|[\t\s]+\\)\\(?1:[:_].*\\|.*\\)")
+
 (add-hook 'after-init-hook
           (lambda ()
-            (read-abbrev-file) ; Reads abbrev_defs and loads the 'global-abbrev-table'
-            ;; No need to re-set abbrev-mode here, as it's set globally above.
-          ))
+            (read-abbrev-file))) ; Reads abbrev_defs and loads the 'global-abbrev-table'
+
 (keymap-global-set "M-/" #'dabbrev-expand)
 
 ;; Fucking hippies
@@ -1314,9 +1329,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
    ("M-s l" . consult-line)             ; Search current buffer
    ("M-s i" . consult-imenu)            ; Jump to definitions
    ("M-s m" . consult-mark))            ; Jump to marks
-   ;; registers
-   ("M-'"     . consult-register-store)
-   ("M-#"     . consult-register-load)
+  ;; registers
+  ("M-'"     . consult-register-store)
+  ("M-#"     . consult-register-load)
   :custom
   (xref-show-xrefs-function        #'consult-xref)
   (xref-show-definitions-function  #'consult-xref)
@@ -1329,7 +1344,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 (use-package consult-dir
   :ensure t
   :bind (:map minibuffer-local-map
-         ("C-x C-d" . consult-dir)))
+              ("C-x C-d" . consult-dir)))
 
 ;; Embark – “right-click for Emacs” (you said you want to learn it → keep minimal & useful)
 (use-package embark
@@ -1371,11 +1386,11 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (corfu-quit-no-match t)
   (corfu-preselect 'prompt)
   :bind (:map corfu-map
-         ("TAB"     . corfu-next)
-         ("<backtab>" . corfu-previous)
-         ("RET"     . corfu-insert))
+              ("TAB"     . corfu-next)
+              ("<backtab>" . corfu-previous)
+              ("RET"     . corfu-insert))
   :config
- ;; (global-corfu-mode 1)
+  ;; (global-corfu-mode 1)
   (corfu-history-mode 1)
   (corfu-popupinfo-mode 1)) ; shows docs on right side
 
@@ -1483,7 +1498,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :demand t
   :custom
   (denote-directory "~/MEGA/emacs-notes/denote/")
- ;;(setopt denote-directory (expand-file-name "denote/"     sjy2-etc-dir))
+  ;;(setopt denote-directory (expand-file-name "denote/"     sjy2-etc-dir))
 
   (denote-known-keywords '("configx" "foodx" "govx" "jobx" "jokex" "notex" "maranathax"
                            "mediax" "persx" "pornx" "quotex" "readx" "refx" "religx"
@@ -1626,8 +1641,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-eldoc-breadcrumb-separator " → ")
   (org-pretty-entities-include-sub-superscripts t)
   
-   ;; Editing behaviour
+  ;; Editing behaviour
   (org-special-ctrl-a/e t)
+  (org-support-shift-select 'always)
   (org-catch-invisible-edits 'smart)
   (org-insert-heading-respect-content t)
   (org-return-follows-link t)  ; RET follows links
@@ -1664,8 +1680,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
   :config    
   (add-hook 'org-mode-hook
-          (lambda ()
-            (remove-hook 'post-command-hook 'org--adapt-indentation t))))
+            (lambda ()
+              (remove-hook 'post-command-hook 'org--adapt-indentation t))))
 
 ;; ———————————————————————— org-modern – Modus-aware ————————————————————————
 (use-package org-modern
@@ -1682,13 +1698,13 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-todo t)
   (org-modern-priority t)
   (org-modern-checkbox 
-    '((?X . "☑")
-      (?  . "☐") 
-      (?- . "❍")))
+   '((?X . "☑")
+     (?  . "☐") 
+     (?- . "❍")))
   (org-modern-list 
-    '((42 . "—")
-      (43 . "—") 
-      (45 . "—")))
+   '((42 . "—")
+     (43 . "—") 
+     (45 . "—")))
   (org-modern-horizontal-rule "────────────────────")
   (org-modern-radio-target    '("❰" t "❱"))
   (org-modern-internal-target '("↪ " t ""))
@@ -1699,10 +1715,10 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-statistics   t)
   (org-modern-block-fringe nil)
   (org-modern-block-name
-    '(("src"      . ("⎡" . "⎣"))
-       ("example" . ("⎡" . "⎣"))
-       ("quote"   . ("❝" . "❞"))
-       (t         . ("·" . "·"))))
+   '(("src"      . ("⎡" . "⎣"))
+     ("example" . ("⎡" . "⎣"))
+     ("quote"   . ("❝" . "❞"))
+     (t         . ("·" . "·"))))
 
   (org-modern-block-name
    `(("src" :background ,(cdr (assoc 'sjy2-bg-1        sjy2-modus-palette)) :extend t)
@@ -1807,7 +1823,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :demand t
   :bind (("C-`"   . popper-toggle)
-        ;;  ("M-`"   . popper-cycle)
+         ;;  ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
