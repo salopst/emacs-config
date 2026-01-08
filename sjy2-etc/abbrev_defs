@@ -1,23 +1,19 @@
-;;-*-coding: utf-8;-*-
-
-;;; (KEYWORD EXPANSION MODE [:PROPERTY VALUE]...)
-;;; if mode == t apply globally
-
+;; -*- coding: utf-8; lexical-binding: t -*-
 (define-abbrev-table 'global-abbrev-table
   '(
-    ("emace" "Emacs" t  :count 0 :case-preserve t)
-    ("linux;" "Linux" t  :count 0 :case-preserve t)
-    ("unix" "UNIX" t  :count 0 :case-preserve t)
-    ("adn" "and" t :count 0 :case-preserve t)
-    ("futher" "further" t :count 0 :case-preserve t)
-    ("taht" "that" t :count 0 :case-preserve t)
-    ("becuase" "because" t :count 0 :case-preserve t)
-    ("waht" "what" t :count 0 :case-preserve t)
-    ("witout" "without" t :count 0 :case-preserve t)
-    ("commedic" "comedic" t :count 0 :case-preserve t)
-    (":lol" "🤣" t :count 0 :case-preserve t)
-    (":uni" "🦄" t :count 0 :case-preserve t)
-    (":poo" "💩" t :count 0 :case-preserve t)
-    ("paper mache" "Papier-mâché" t :count 0  :case-preserve t)
+    (":lol:" "🤣" t :count 0)
+    ("adn" "and" t :count 0)
+    ("becuase" "because" t :count 0)
+    ("commedic" "comedic" t :count 0)
+    ("emace" "Emacs" t :count 0)
+    ("futher" "further" t :count 0)
+    ("linu;" "Linux" t :count 0)
+    ("metest" "Some very clever expansion" nil :count 1)
+    ("metime" "" my-current-time :count 1)
+    ("paper mache" "Papier-mâché" t :count 0)
+    ("taht" "that" t :count 0)
+    ("unix" "UNIX" t :count 0)
+    ("waht" "what" t :count 0)
+    ("witout" "without" t :count 0)
    ))
 
