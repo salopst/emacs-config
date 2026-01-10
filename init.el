@@ -1831,70 +1831,40 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :demand t
   :bind (("C-`"   . popper-toggle)
-         ;;  ("M-`"   . popper-cycle)
          ("C-M-`" . popper-toggle-type))
   :init
   (setq popper-reference-buffers
-        '(
-          ;; "\\*Messages\\*"
-          ;; "\\*Warnings\\*"
-          ;; "\\*Compile-Log\\*"
-          ;; "\\*Async Shell Command\\*"
-          ;; "\\*Embark Collect.*\\*"
-          ;; "\\*Help.*\\*"
-          ;; "\\*helpful.*\\*"
-          ;; "\\*Occur\\*"
-          ;; "\\*Calendar\\*"
-          ;; "\\*tex-shell\\*"
-          "\\*TeX Help\\*"
+        '("\\*TeX Help\\*"
           help-mode
           helpful-mode
           compilation-mode
           occur-mode
           messages-buffer-mode
-          calendar-mode))
-  
+          calendar-mode)
+        
+        ;; Control where popups appear
+        popper-display-function #'display-buffer-in-side-window
+        popper-display-control t)
   :custom
-  (popper-mode-line '(:eval (propertize " 🍿POP " 'face 'mode-line-emphasis)))
-  (popper-display-control t)         ; Let Popper manage placement
-  (popper-echo-dispatch-keys t)  ; Show hints in echo area
-  (popper-window-height 0.33)    ; 33% of frame height
+  (popper-mode-line '(:eval (propertize " 🍿 " 'face 'mode-line-emphasis)))
+  (popper-window-height 0.33)
   :config
   (popper-mode 1)
   (popper-echo-mode 1)
   
-  ;; Make M-` repeatable (Karthink's trick)
+  ;; Make cycling repeatable (Karthink's trick)
   (advice-add 'popper-cycle :after
               (lambda (&rest _)
-                "Allow repeated M-` to keep cycling popups."
                 (when (eq last-command-event ?`)
                   (set-transient-map
                    (let ((map (make-sparse-keymap)))
-                     (define-key map (kbd "`") #'popper-cycle)
+                     (define-key map "`" #'popper-cycle)
                      map))))))
 
-
-;; Embark Collect (clean appearance)
+;; Help buffers appear on right side
 (add-to-list 'display-buffer-alist
-             '("\\*Embark Collect \\(Live\\|Completions\\)\\*"
+             '("\\*\\(Help\\|helpful\\).*\\*"
                (display-buffer-in-side-window)
-               (side . bottom)
-               (slot . 0)
-               (window-parameters (mode-line-format . none))))
-
-;; Occur (reuse window, appear below)
-(add-to-list 'display-buffer-alist
-             '("\\*Occur\\*"
-               (display-buffer-reuse-mode-window
-                display-buffer-below-selected)
-               (window-height . 0.3)
-               (dedicated . t)))
-
-;; Help buffers (reuse if available)
-(add-to-list 'display-buffer-alist
-             '("\\*Help\\*"
-               (display-buffer-reuse-mode-window
-                display-buffer-in-side-window)
                (side . right)
                (slot . 0)
                (window-width . 80)))
