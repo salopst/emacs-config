@@ -269,10 +269,11 @@
 (define-advice kill-region (:around (orig-fun beg end &rest args) sjy2/unix-werase)
   "If called interactively with no active region, delete one word backward.
 Otherwise call `kill-region` as usual."
-  (if (use-region-p)
-      ;; Region active --> normal kill-region
+  (if (or (use-region-p)
+          (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
+      ;; Region active OR called non-interactively --> normal kill-region
       (apply orig-fun beg end args)
-    ;; No region --> behave like Unix werase
+    ;; Called interactively with no region --> behave like Unix werase
     (let ((p (point))
           (q (save-excursion (backward-word 1) (point))))
       (kill-new (buffer-substring-no-properties q p))
@@ -1846,7 +1847,6 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
           ;; "\\*Calendar\\*"
           ;; "\\*tex-shell\\*"
           "\\*TeX Help\\*"
-          "\\*.*\\*"
           help-mode
           helpful-mode
           compilation-mode
