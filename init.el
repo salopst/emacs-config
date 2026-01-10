@@ -777,8 +777,14 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 (use-package diff-hl
   :hook ((prog-mode . diff-hl-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
-  :config (diff-hl-flydiff-mode 1)
-  (unless (display-graphic-p) (diff-hl-margin-mode 1)))
+  :init
+  ;; Fix compatibility issue with revert-buffer-in-progress
+  (unless (boundp 'revert-buffer-in-progress)
+    (defvar revert-buffer-in-progress nil))
+  :config
+  (diff-hl-flydiff-mode 1)
+  (unless (display-graphic-p) 
+    (diff-hl-margin-mode 1)))
 
 
 ;; Run Emacs Lisp functions asynchronously in separate Emacs processes

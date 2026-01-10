@@ -14,7 +14,21 @@
    '(("keywords" "Keywords to describe the entry" "")
      ("file" "Link to a document file" "")) nil nil "Customized with use-package bibtex")
  '(org-fold-catch-invisible-edits 'show-and-error nil nil "Customized with use-package org")
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(ace-window aggressive-indent all-the-icons-completion anzu beacon
+		biblio colorful-mode consult-dir corfu crux csv-mode
+		deadgrep denote diff-hl dired-filter dired-git-info
+		dired-subtree doom-modeline drag-stuff embark-consult
+		expand-region fd-dired goto-last-change helpful iedit
+		jinx keycast magit marginalia markdown-mode minions
+		mixed-pitch modus-themes multiple-cursors
+		nerd-icons-dired nov olivetti orderless org-appear
+		org-auto-tangle org-download org-modern
+		org-modern-indent org-side-tree org-sticky-header-mode
+		popper pulsar rainbow-delimiters rainbow-mode rg
+		smartparens tempel treesit-auto ultra-scroll undo-fu
+		unfill vertico visual-regexp-steroids vlf vterm-toggle
+		vundo yaml-mode zzz-to-char))
  '(package-vc-selected-packages
    '((kbd-mode :url "https://github.com/kmonad/kbd-mode")
      (vundo :url "https://github.com/casouri/vundo")
