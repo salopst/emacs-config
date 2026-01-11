@@ -1322,6 +1322,12 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;;; ———————————————————————— 09 Consult, Embark etc ————————————————————————
 
 ;; Consult – the one true replacement for almost everything
+(defun sjy2/consult-line-all-buffers ()
+  "Always search ALL buffers with consult-line-multi."
+  (interactive)
+  (let ((current-prefix-arg '(4)))  ; Simulate C-u
+    (call-interactively #'consult-line-multi)))
+
 (use-package consult
   :ensure t
   :demand t
@@ -1329,6 +1335,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (;; C-x replacements
    ("C-x b"   . consult-buffer)
    ("C-x B"   . consult-buffer-other-window)
+   ("C-x C-f" . consult-buffer-other-frame)
+   ("C-x C-r" . consult-recent-file)
    ("C-x r b" . consult-bookmark)
    ("C-x p b" . consult-project-buffer)
    ;; M-g replacements
@@ -1337,16 +1345,16 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
    ("M-g o"   . consult-outline)
    ("M-g i"   . consult-imenu)
    ("M-g I"   . consult-imenu-multi)
-   ;; M-s searching
-   ("M-s o" . consult-line-multi)       ; Search across open buffers
-   ("M-s O" . consult-multi-occur)      ; Traditional occur interface
-   ("M-s g" . consult-grep)             ; Grep current directory
-   ("M-s G" . consult-git-grep)         ; Git grep (if in repo)
-   ("M-s r" . consult-ripgrep)          ; Ripgrep (fastest)
-   ("M-s f" . consult-find)             ; Find files
-   ("M-s l" . consult-line)             ; Search current buffer
-   ("M-s i" . consult-imenu)            ; Jump to definitions
-   ("M-s m" . consult-mark))            ; Jump to marks
+   ;; M-s searching (project limited;)
+   ("M-s o" . consult-line-multi)            ; Search poject buffers 
+   ("M-s O" . sjy2/consult-line-all-buffers) ; Search all open buffers
+   ("M-s g" . consult-grep)                  ; Grep project directory
+   ("M-s G" . consult-git-grep)              ; Git grep (if in repo)
+   ("M-s r" . consult-ripgrep)               ; Ripgrep (fastest)
+   ("M-s f" . consult-find)                  ; Find files
+   ("M-s l" . consult-line)                  ; Search current buffer
+   ("M-s i" . consult-imenu)                 ; Jump to definitions
+   ("M-s m" . consult-mark))                 ; Jump to marks
   ;; registers
   ("M-'"     . consult-register-store)
   ("M-#"     . consult-register-load)
@@ -1356,7 +1364,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   ;; For external projects, install prot-consult: M-x package-install RET prot-consult
   (consult-project-root-function   #'consult-project-root-function)  ; safe default
   ;; FD-powered ripgrep (replaces consult-fd)
-  (consult-ripgrep-args "fd --color=never --null --hidden --other --ignore-file ~/.gitignore --follow --glob --no-ignore-vcs --type f --type empty"))
+  (consult-ripgrep-args
+   "rg --null --line-buffered --color=never --max-columns=1000 --path-separator / --smart-case --no-heading --with-filename --line-number --search-zip --hidden --glob=!.git/"))
 
 ;; recent directories in minibuffer (tiny quality-of-life)
 (use-package consult-dir
