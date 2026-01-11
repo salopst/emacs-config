@@ -1507,19 +1507,19 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (keymap-set my-spelling-map "w" #'jinx-correct-word)
   (keymap-set my-spelling-map "N" #'jinx-correct-nearest))
 
-;; 2. Olivetti – your exact preferred width + clean setup
+;; 2. Olivetti – minimalist writing experience
 (use-package olivetti
   :ensure t
   :bind ("C-c o" . olivetti-mode)
   :custom
-  (olivetti-body-width 88)
-  (olivetti-minimum-body-width 72)
+  (olivetti-body-width 125)
+  (olivetti-minimum-body-width 100)
   (olivetti-recall-visual-line-mode-entry-state t)
   :hook (olivetti-mode . (lambda ()
                            (when olivetti-mode
                              (display-line-numbers-mode -1)))))
 
-;; 3. Denote – the absolute best of both your old configs
+;; 3. Denote – simple notetaking
 (use-package denote
   :ensure t
   :demand t
@@ -1527,7 +1527,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (denote-directory "~/MEGA/emacs-notes/denote/")
   ;;(setopt denote-directory (expand-file-name "denote/"     sjy2-etc-dir))
 
-  (denote-known-keywords '("configx" "foodx" "govx" "jobx" "jokex" "notex" "maranathax"
+  (denote-known-keywords '("configx" "foodx" "govx" "jobx" "jokex" "langx" "notex" "maranathax"
                            "mediax" "persx" "pornx" "quotex" "readx" "refx" "religx"
                            "techx" "whoknewx" "wordx"))
   (denote-infer-keywords t)
@@ -1543,10 +1543,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
          ("C-c n i"   . denote-link-or-create)
          ("C-c n l"   . denote-find-link)
          ("C-c n b"   . denote-find-backlink)
-         ("C-c n f"   . sjy2/consult-denote-search)
-         ("C-c n g"   . sjy2/consult-denote-grep)
-         ("C-c n r"   . sjy2/denote-quick-reference)
-         ("C-c n k"   . sjy2/denote-keyword-filter)) 
+         ("C-c n f"   . sjy2/consult-denote-search)  ; filename search
+         ("C-c n g"   . sjy2/consult-denote-grep)) 
   :hook ((dired-mode  . denote-dired-mode)
          (text-mode   . denote-fontify-links-mode-maybe))
   :config
@@ -1580,44 +1578,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (defun sjy2/consult-denote-grep ()
     "Ripgrep inside Denote notes."
     (interactive)
-    (consult-ripgrep denote-directory))
-  
-  ;; NEW: Quick reference lookup (filter for "refx" keyword)
-  (defun sjy2/denote-quick-reference ()
-    "Quickly find reference notes (refx keyword)."
-    (interactive)
-    (let ((refs (seq-filter
-                 (lambda (f) (string-match-p "refx" (file-name-nondirectory f)))
-                 (denote-directory-files))))
-      (if refs
-          (find-file
-           (consult--read
-            refs
-            :prompt "Reference Note: "
-            :sort t
-            :require-match t
-            :category 'file
-            :state (consult--file-preview)))
-        (message "No reference notes found"))))
-  
-  ;; NEW: Filter notes by keyword interactively
-  (defun sjy2/denote-keyword-filter ()
-    "Filter Denote notes by selecting a keyword."
-    (interactive)
-    (let* ((keyword (completing-read "Keyword: " denote-known-keywords nil t))
-           (filtered (seq-filter
-                      (lambda (f) (string-match-p keyword (file-name-nondirectory f)))
-                      (denote-directory-files))))
-      (if filtered
-          (find-file
-           (consult--read
-            filtered
-            :prompt (format "Notes [%s]: " keyword)
-            :sort t
-            :require-match t
-            :category 'file
-            :state (consult--file-preview)))
-        (message "No notes found with keyword: %s" keyword)))))
+    (consult-ripgrep denote-directory)))
 
 ;; 4. One-key writing session (enhanced with auto-save)
 (defun sjy2/writing-session ()
