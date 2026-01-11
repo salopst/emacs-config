@@ -196,12 +196,22 @@
 
 (setq-default cursor-type 'box)     ; As RMS intended
 (add-to-list 'default-frame-alist '(cursor-type . box))
-;; FUCKING BAR CURSOR IN ORG!!!!!!!!!
+
+(defun sjy2/force-box-cursor ()
+  "Aggressively force box cursor."
+  (interactive)
+  (setq cursor-type 'box)
+  (when (called-interactively-p 'interactive)
+    (message "Cursor forced to box")))
+
+(add-hook 'post-command-hook                #'sjy2/force-box-cursor)
+(add-hook 'focus-in-hook                    #'sjy2/force-box-cursor)
+(add-hook 'buffer-list-update-hook          #'sjy2/force-box-cursor)
+(add-hook 'window-configuration-change-hook #'sjy2/force-box-cursor)
 (with-eval-after-load 'org
-  (defun sjy2/org-fix-cursor ()
-    "Fix cursor to box in org-mode."
-    (setq cursor-type 'box))
-    (add-hook 'org-mode-hook #'sjy2/org-fix-cursor 90))
+  (add-hook 'org-mode-hook #'sjy2/force-box-cursor 99))
+
+(global-set-key (kbd "C-c C-b") #'sjy2/force-box-cursor)
 
 ;;; ———————————————————————— 04 Keybindings ————————————————————————
 (keymap-set key-translation-map "ESC" "C-g")
@@ -1816,13 +1826,6 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (olivetti-mode 1)
   (jinx-mode 1))
 (global-set-key (kbd "C-c w j") #'sjy2/org-writing-session)
-
-;; BOX CURSOR IN ORG AS ~~GOD~~ RMS INTENDED
-(add-hook 'org-mode-hook
-          (lambda ()
-            (run-at-time 0 nil
-                         (lambda ()
-                           (setq-local cursor-type 'box)))))
 
 
 ;;; ———————————————————————— 25 Windowing ————————————————————————
