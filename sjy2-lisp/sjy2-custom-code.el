@@ -54,6 +54,7 @@
 (keymap-global-set "C-c e c"  #'sjy2/eval-and-copy)
 (keymap-global-set "C-c t t"  #'sjy2/toggle-transparency)
 (keymap-global-set "C-c M-t"  #'sjy2/markdown-table-to-org)
+(keymap-global-set "C-c M-t"  #'sjy2/whitespace-clean-in-region)
 
 ;; windowing
 (keymap-global-set "C-x 4"    #'sjy2/toggle-maximize-window)
@@ -76,13 +77,13 @@
 (keymap-global-set "M-u"             #'sjy2/cycle-case-region-or-word)
 (keymap-global-set "C-g"             #'prot/keyboard-quit-dwim)
 
+afdaf
 
 ;; Buffer and file ops
 (sjy2/bind "b i" #'back-to-indentation)
 (sjy2/bind "b n" #'sjy2/copy-buffer-name)
-(sjy2/bind "f d" #'find-name-dired)
-(sjy2/bind "f w" #'sjy2/write-file-with-filename)
 (sjy2/bind "n n" #'sjy2/copy-file-name)
+(sjy2/bind "f d" #'find-name-dired)
 (sjy2/bind "s d" #'sjy2/save-with-timestamp-prefix)
 
 ;; put in direc section of init.el.
@@ -122,7 +123,27 @@
 ;;; Implementations
 ;;; ------------------------------------------------------------------
 
-(defun sjy2-kill-orphan-buffers ()
+(defun sjy2/whitespace-clean-in-region (beg end)
+  "Clean up whitespace in region: remove leading/trailing, compress multiple spaces."
+  (interactive "r")
+  (save-excursion
+    (save-restriction
+      (narrow-to-region beg end)
+      (goto-char (point-min))
+      ;; Remove leading whitespace from each line
+      (while (re-search-forward "^[[:space:]]+" nil t)
+        (replace-match ""))
+      ;; Remove trailing whitespace from each line
+      (goto-char (point-min))
+      (while (re-search-forward "[[:space:]]+$" nil t)
+        (replace-match ""))
+      ;; Compress multiple spaces to single space
+      (goto-char (point-min))
+      (while (re-search-forward "[[:space:]]\\{2,\\}" nil t)
+        (replace-match " ")))))
+
+
+(defun sjy2/kill-orphan-buffers ()
   "Kill file-visiting buffers whose files no longer exist."
   (interactive)
   (let ((killed 0))
@@ -135,7 +156,7 @@
     (message "Killed %d orphan buffer%s"
              killed (if (= killed 1) "" "s"))))
 
-(defun sjy2-clean-session ()
+(defun sjy2/clean-session ()
   "Kill orphan buffers and clean recentf/desktop.
 Skips remote files (TRAMP buffers)."
   (interactive)
@@ -441,16 +462,6 @@ Provides completion, stays in the same directory, and refreshes Dired cleanly."
     (message "Killed %d autoloads buffer(s)" count)))
 
 
-(defun sjy2/write-file-with-filename ()
-  "Like `write-file`, but pre-fill minibuffer with the current filename."
-  (interactive)
-  (let* ((cur (or (buffer-file-name) default-directory))
-         (dir (file-name-directory cur))
-         (default (file-name-nondirectory cur))
-         (target (read-file-name "Write file: " dir nil nil default)))
-    (write-file target)))
-
-
 (defun sjy2/insert-timestamp (&optional arg)
   "Insert a timestamp at point.
 With prefix ARG (C-u), use ISO8601 format (YYYY-MM-DD HH:MM:SS).
@@ -697,6 +708,8 @@ Silently continues on error, and reports a summary at the end."
   (exchange-point-and-mark)
   (sp-backward-down-sexp)
   (exchange-point-and-mark))
+
+
 
 ;;; ------------------------------------------------------------------
 

@@ -31,6 +31,7 @@
 (defconst sjy2-lisp-dir       (expand-file-name "sjy2-lisp/"       user-emacs-directory))
 (defconst sjy2-themes-dir     (expand-file-name "themes/"          user-emacs-directory))
 (defconst git-cloned-lisp-dir (expand-file-name "git-cloned-lisp/" user-emacs-directory))
+(defconst sjy2-scratch-dir    (expand-file-name "~/_scratch"))
 
 ;; Create essential directories if they don't exist
 (dolist (dir (list sjy2-cache-dir sjy2-etc-dir sjy2-lisp-dir))
@@ -100,9 +101,8 @@
 (setq abbrev-file-name             (expand-file-name "abbrev_defs"        sjy2-etc-dir))
 (setq custom-file                  (expand-file-name "custom.el"          sjy2-etc-dir))
 
-
-;; (setopt org-directory    (expand-file-name "org/"        sjy2-etc-dir))
-;; (setopt denote-directory (expand-file-name "denote/"     sjy2-etc-dir))
+;; (setopt denote-directory sjy2-scratch-dir)
+(setopt org-directory (file-name-concat sjy2-scratch-dir "org/"))
 ;; (setopt tempel-path      (expand-file-name "tempel-snippets.el" sjy2-etc-dir))
 
 (setq custom-file (expand-file-name "custom.el" sjy2-etc-dir))
@@ -1328,6 +1328,12 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (let ((current-prefix-arg '(4)))  ; Simulate C-u
     (call-interactively #'consult-line-multi)))
 
+(defun sjy2/consult-ripgrep ()
+  "Select dir before ripgrep"
+  (interactive)
+  (let ((current-prefix-arg '(4)))  ; Simulate C-u
+    (call-interactively #'consult-ripgrep)))
+
 (use-package consult
   :ensure t
   :demand t
@@ -1351,6 +1357,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
    ("M-s g" . consult-grep)                  ; Grep project directory
    ("M-s G" . consult-git-grep)              ; Git grep (if in repo)
    ("M-s r" . consult-ripgrep)               ; Ripgrep (fastest)
+   ("M-s R" . sjy2/consult-ripgrep)          ; select a dir first (like C-u M-s r)
    ("M-s f" . consult-find)                  ; Find files
    ("M-s l" . consult-line)                  ; Search current buffer
    ("M-s i" . consult-imenu)                 ; Jump to definitions
@@ -1527,9 +1534,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (denote-directory "~/MEGA/emacs-notes/denote/")
   ;;(setopt denote-directory (expand-file-name "denote/"     sjy2-etc-dir))
 
-  (denote-known-keywords '("configx" "foodx" "govx" "jobx" "jokex" "langx" "notex" "maranathax"
-                           "mediax" "persx" "pornx" "quotex" "readx" "refx" "religx"
-                           "techx" "whoknewx" "wordx"))
+  (denote-known-keywords '("configx" "foodx" "govx" "jobx" "jokex" "langx" "maranathax"
+                           "mediax" "persx" "quotex" "readx" "refx" "religx" "techx" "whoknewx" "wordx"))
   (denote-infer-keywords t)
   (denote-sort-keywords t)
   (denote-file-type 'org)
@@ -1865,3 +1871,4 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 (provide 'init.el)
 ;;; init.el ends here
+(put 'dired-find-alternate-file 'disabled nil)
