@@ -77,8 +77,6 @@
 (keymap-global-set "M-u"             #'sjy2/cycle-case-region-or-word)
 (keymap-global-set "C-g"             #'prot/keyboard-quit-dwim)
 
-afdaf
-
 ;; Buffer and file ops
 (sjy2/bind "b i" #'back-to-indentation)
 (sjy2/bind "b n" #'sjy2/copy-buffer-name)

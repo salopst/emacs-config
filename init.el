@@ -204,14 +204,15 @@
   (when (called-interactively-p 'interactive)
     (message "Cursor forced to box")))
 
+(keymap-global-set "C-c C-b"   #'sjy2/force-box-cursor)
+
 (add-hook 'post-command-hook                #'sjy2/force-box-cursor)
 (add-hook 'focus-in-hook                    #'sjy2/force-box-cursor)
 (add-hook 'buffer-list-update-hook          #'sjy2/force-box-cursor)
 (add-hook 'window-configuration-change-hook #'sjy2/force-box-cursor)
 (with-eval-after-load 'org
-  (add-hook 'org-mode-hook #'sjy2/force-box-cursor 99))
-
-(global-set-key (kbd "C-c C-b") #'sjy2/force-box-cursor)
+  (add-hook 'org-mode-hook                  #'sjy2/force-box-cursor 99)
+  (define-key org-mode-map (kbd "C-,")      #'pop-to-mark-command))
 
 ;;; ———————————————————————— 04 Keybindings ————————————————————————
 (keymap-set key-translation-map "ESC" "C-g")
@@ -220,9 +221,7 @@
 (keymap-global-set "C-z"        #'undo)
 (keymap-global-set "C-x g"      #'magit-status)
 (keymap-global-set "C-/"        #'comment-line)
-(keymap-global-set "C-x C-m"    #'execute-extended-command)
-(keymap-global-set "C-c C-m"    #'execute-extended-command)
-
+(keymap-global-set "C-,"        #'pop-to-mark-command)
 (keymap-global-set "C-="        #'text-scale-increase)
 (keymap-global-set "C--"        #'text-scale-decrease)
 (keymap-global-set "C-v"        #'yank) ; from CUA; was scroll-up; default C-y
@@ -277,32 +276,32 @@
 
 ;; C-w -- Steve Yegge's classic backwards-kill-word rewritten
 (define-advice kill-region (:around (orig-fun beg end &rest args) sjy2/unix-werase)
-  "If called interactively with no active region, delete one word backward.
+"If called interactively with no active region, delete one word backward.
 Otherwise call `kill-region` as usual."
-  (if (or (use-region-p)
-          (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
-      ;; Region active OR called non-interactively --> normal kill-region
-      (apply orig-fun beg end args)
-    ;; Called interactively with no region --> behave like Unix werase
-    (let ((p (point))
-          (q (save-excursion (backward-word 1) (point))))
-      (kill-new (buffer-substring-no-properties q p))
-      (delete-region q p))))
+(if (or (use-region-p)
+        (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
+    ;; Region active OR called non-interactively --> normal kill-region
+    (apply orig-fun beg end args)
+  ;; Called interactively with no region --> behave like Unix werase
+  (let ((p (point))
+        (q (save-excursion (backward-word 1) (point))))
+    (kill-new (buffer-substring-no-properties q p))
+    (delete-region q p))))
 
 
 ;; M-w = copy line when no region (like VS Code C-c) — perfect 2025 version
 (defun sjy2/kill-ring-save-dwim (&optional arg)
-  "Copy region if active, otherwise copy current line.
+"Copy region if active, otherwise copy current line.
 With prefix ARG, copy the line with trailing newline (like `kill-line')."
-  (interactive "P")
-  (if (use-region-p)
-      (kill-ring-save (region-beginning) (region-end))
-    (let ((beg (line-beginning-position))
-          (end (line-end-position)))
-      (when arg
-        (setq end (min (point-max) (1+ end))))  ; include newline
-      (kill-new (buffer-substring-no-properties beg end))
-      (message "Copied line%s" (if arg " (with newline)" "")))))
+(interactive "P")
+(if (use-region-p)
+    (kill-ring-save (region-beginning) (region-end))
+  (let ((beg (line-beginning-position))
+        (end (line-end-position)))
+    (when arg
+      (setq end (min (point-max) (1+ end))))  ; include newline
+    (kill-new (buffer-substring-no-properties beg end))
+    (message "Copied line%s" (if arg " (with newline)" "")))))
 
 ;; Replace M-w globally with the DWIM version
 (keymap-global-set "M-w" #'sjy2/kill-ring-save-dwim)
@@ -394,7 +393,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (sjy2-dark-bg-highlight . "#3C495C")
     (sjy2-niagara           . "#96a6c8")
     (sjy2-dark-bg-highlight-2 . "#252B35")
-    (sjy2-dark-shrews       . "#A6B7DF")   ; cursor (dark)
+    (sjy2-dark-shrews         . "#A6B7DF")   ; cursor (dark)
     (sjy2-dark-modline-active . "#A6B7DF")
     (sjy2-dark-modline-inactive . "#35404F")))
 
@@ -403,9 +402,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   `((background            ,(cdr (assoc 'sjy2-bg                sjy2-modus-palette)))
     (foreground            ,(cdr (assoc 'sjy2-fg                sjy2-modus-palette)))
     (bg-dim                ,(cdr (assoc 'sjy2-bg-1              sjy2-modus-palette)))
-    (bg-alt                ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
-    (bg-active             ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
-    (bg-inactive           ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
+    (bg-alt                ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
+    (bg-active             ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
+    (bg-inactive           ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
     (comment               ,(cdr (assoc 'sjy2-quartz            sjy2-modus-palette)))
     (cursor                ,(cdr (assoc 'sjy2-shrews            sjy2-modus-palette)))
     (keyword               ,(cdr (assoc 'sjy2-wisteria          sjy2-modus-palette)))
@@ -813,7 +812,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;; A minor mode which displays current (and total) matches in the mode-line.
 (use-package anzu
   ;; :vc (:url "https://github.com/emacsorphanage/anzu" :rev :newest)
-  :bind (([remap query-replace] . anzu-query-replace)
+  :bind (([remap query-replace]        . anzu-query-replace)
          ([remap query-replace-regexp] . anzu-query-replace-regexp))
   :config 
   (global-anzu-mode 1))
@@ -1341,7 +1340,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (;; C-x replacements
    ("C-x b"   . consult-buffer)
    ("C-x B"   . consult-buffer-other-window)
-   ("C-x C-f" . consult-buffer-other-frame)
+   ("C-x C-F" . consult-buffer-other-frame)
    ("C-x C-r" . consult-recent-file)
    ("C-x r b" . consult-bookmark)
    ("C-x p b" . consult-project-buffer)
@@ -1649,30 +1648,34 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-edit-src-content-indentation 0)
   (org-src-fontify-natively t)  ; Syntax highlight in blocks
   (org-confirm-babel-evaluate nil)  ; Don't ask before evaluating
+
+  ;; Agenda
+  (org-agenda-start-with-log-mode t)
+  (org-agenda-window-setup 'current-window)
   
   ;; TODOs
   (org-log-done 'time)
   (org-log-into-drawer t)  ; Keep logs in :LOGBOOK: drawer
-  (org-todo-keywords
-   '((sequence "TODO(t)" "HOLD(h)" "WAIT(w)" "INFO(i)" "REDO(r)"
-               "|" "DONE(d)" "MISS(m)" "SKIP(s)" "CANC(c)")))
-  
-  (org-todo-keyword-faces
-   '(("TODO" . (:foreground "red"     :weight bold))
-     ("HOLD" . (:foreground "orange"  :weight bold))
-     ("WAIT" . (:foreground "magenta" :weight bold))
-     ("INFO" . (:foreground "green"   :weight bold))
-     ("REDO" . (:foreground "red"     :weight bold))
-     ("DONE" . (:foreground "green"   :weight bold))
-     ("MISS" . (:foreground "gray"    :weight bold))
-     ("SKIP" . (:foreground "gray"    :weight bold))
-     ("CANC" . (:foreground "gray"    :weight bold))))
-  
-  ;; Agenda
-  (org-agenda-start-with-log-mode t)
-  (org-agenda-window-setup 'current-window)
 
-  :config    
+  :config
+  (setq org-todo-keywords
+        '((sequence "TODO(t)" "HOLD(h)" "WAIT(w)" "INFO(i)" "REDO(r)"
+                    "|" "DONE(d)" "MISS(m)" "PASS(p)" "SKIP(s)" "CANC(c)")))
+
+  (setq org-todo-keyword-faces
+        '(("TODO" . (:background "#f7768e" :weight bold :box t))
+          ("REDO" . (:background "#f7768e" :weight bold :box t))
+          ("DONE" . (:background "#73daca" :weight bold :box t))
+          ("HOLD" . (:background "#ff9e64" :weight bold :box t))
+          ("WAIT" . (:background "#bb9af7" :weight bold :box t))
+          ("INFO" . (:background "#9ece6a" :weight bold :box t))
+          ("MISS" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))  ; blue-gray
+          ("SKIP" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))  
+          ("PASS" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))
+          ("CANC" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))))
+
+  (setq org-modern-todo-faces org-todo-keyword-faces) ; Make org-modern respect my authority
+  
   (add-hook 'org-mode-hook
             (lambda ()
               (remove-hook 'post-command-hook 'org--adapt-indentation t))))
@@ -1689,7 +1692,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-hide-stars 'leading)
   (org-modern-star 'replace)  ; nil or fold (triangles)
   (org-modern-table t)
-  (org-modern-todo t)
+  (org-modern-todo nil)
   (org-modern-priority t)
   (org-modern-checkbox 
    '((?X . "☑")
@@ -1746,7 +1749,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
   ;;:config
   (global-org-modern-mode 1)
-  (add-hook 'org-mode-hook #'org-modern-mode)
+  (add-hook 'org-mode-hook            #'org-modern-mode)
   (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
 
 
