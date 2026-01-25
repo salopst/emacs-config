@@ -638,6 +638,10 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :hook (dired-mode . dired-filter-mode))
 
+;; https://github.com/renard/dired-toggle-sudo
+(use-package dired-toggle-sudo
+  :ensure t)
+
 (use-package dired
   :ensure nil
   :custom
@@ -1874,4 +1878,3 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 (provide 'init.el)
 ;;; init.el ends here
-(put 'dired-find-alternate-file 'disabled nil)
