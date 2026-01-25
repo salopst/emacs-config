@@ -1,4 +1,4 @@
-;;; dired-toggle-sudo.el --- Browse directory with sudo privileges.
+;;; dired-toggle-sudo.el --- Browse directory with sudo privileges.  -*- lexical-binding: t; -*-
 
 ;; Copyright © 2011 Sebastien Gross <seb•ɑƬ•chezwam•ɖɵʈ•org>
 

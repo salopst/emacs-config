@@ -228,9 +228,8 @@
 (keymap-global-set "C-x C-r"    #'eval-print-last-sexp)
 (keymap-global-set "C-s"        #'isearch-forward-regexp)
 (keymap-global-set "C-r"        #'isearch-backward-regexp) ; M-e in isearch -- allows proper editing
-(keymap-global-set "C-x C-g"    #'find-file-at-point)
-(keymap-global-set "C-c i m"    #'imenu)
 (keymap-global-set "C-M-r"      #'query-replace-regexp)    ; C-M-% is the finger crunching default
+(keymap-global-set "C-x f"      #'find-file)               ; default set-fill-column 
 (keymap-global-set "C-c t f"    #'auto-fill-mode)
 (keymap-global-set "C-c t l"    #'toggle-truncate-lines)
 (keymap-global-set "C-c t w"    #'white-space-mode)
@@ -244,49 +243,39 @@
 (keymap-global-set "C-x o"      #'sjy2/cycle-windows-and-frames)
 (keymap-global-set "C-x C-r"    #'recentf-open) ; override `find-file-read-only'
 (keymap-global-set "M-u"        #'sjy2/cycle-case-region-or-word)
-(keymap-global-set "C-c d"      #'duplicate-dwim) ; Emacs default version of the crux
-;;(keymap-global-set "C-c d"      #'crux-duplicate-current-line-or-region)
+(keymap-global-set "C-x C-d"    #'dired) ; default list-directory
+;;(keymap-global-set "C-c d"      #'duplicate-dwim) ; Emacs default version of the crux
+(keymap-global-set "C-c d"      #'crux-duplicate-current-line-or-region)
 (keymap-global-set "C-c D D"    #'crux-delete-file-and-buffer)
-(keymap-global-set "C-c o w"    #'crux-open-with) ; xdg-open
-(keymap-global-set "C-c o r"    #'crux-reopen-as-root)
+(keymap-global-set "C-c o a"    #'crux-smart-open-line-above)
+(keymap-global-set "C-c o b"    #'crux-smart-open-line)   ; open line below
+(keymap-global-set "C-c o p"    #'ffap)                   ; find file at point
+(keymap-global-set "C-c o r"    #'crux-reopen-as-root) 
+(keymap-global-set "C-c o w"    #'crux-open-with)         ; xdg-open
 (keymap-global-set "M-r"        #'crux-recentf-find-file) ; recentf-list void 
-(keymap-global-set "s-o"        #'crux-smart-open-line)
-(keymap-global-set "s-O"        #'crux-smart-open-line-above)
+
 (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
 (global-set-key [remap kill-whole-line]        #'crux-kill-whole-line)
+
 (with-eval-after-load 'org
-  (keymap-set org-mode-map "M-s-<up>" #'org-move-subtree-up)
-  (keymap-set org-mode-map "M-s-<down>" #'org-move-subtree-down))
-
-(global-set-key (kbd "C-x C-d") 'dired) ; is usually list-directory
-;; C-j is usually bound to org-return-and-maybe-indent in org-mode
-;; C-j is usually bound to electric-newline-and-maybe-indent in elisp mode
-
-(defun my-override-c-j-in-mode ()
-  (define-key (current-local-map) (kbd "C-j") #'avy-goto-char-timer))
-(add-hook 'emacs-lisp-mode-hook #'my-override-c-j-in-mode)
-
-(with-eval-after-load "org"
-  (define-key org-mode-map (kbd "C-j") #'avy-goto-char-timer) ; default = org-return-and-maybe-indent
-  (define-key org-mode-map (kbd "C-'") #'embrace-commander) ; default = org-cycle-agenda-files 
-  )
-
-(keymap-global-set "M-S-<up>"   #'org-move-subtree-up)
-(keymap-global-set "M-S-<down>" #'org-move-subtree-down)
+  (keymap-set org-mode-map "M-s-<up>"   #'org-move-subtree-up)
+  (keymap-set org-mode-map "M-s-<down>" #'org-move-subtree-down)
+  (keymap-set org-mode-map "C-j"        #'avy-goto-char-timer) ; default = org-return-and-maybe-indent or electric-newline-and maybe-indent
+  (keymap-set org-mode-map "C-'"        #'sjy2/wrap-interactive)) ; was embrace-commander ; default = org-cycle-agenda-files
 
 ;; C-w -- Steve Yegge's classic backwards-kill-word rewritten
 (define-advice kill-region (:around (orig-fun beg end &rest args) sjy2/unix-werase)
-"If called interactively with no active region, delete one word backward.
+  "If called interactively with no active region, delete one word backward.
 Otherwise call `kill-region` as usual."
-(if (or (use-region-p)
-        (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
-    ;; Region active OR called non-interactively --> normal kill-region
-    (apply orig-fun beg end args)
-  ;; Called interactively with no region --> behave like Unix werase
-  (let ((p (point))
-        (q (save-excursion (backward-word 1) (point))))
-    (kill-new (buffer-substring-no-properties q p))
-    (delete-region q p))))
+  (if (or (use-region-p)
+          (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
+      ;; Region active OR called non-interactively --> normal kill-region
+      (apply orig-fun beg end args)
+    ;; Called interactively with no region --> behave like Unix werase
+    (let ((p (point))
+          (q (save-excursion (backward-word 1) (point))))
+      (kill-new (buffer-substring-no-properties q p))
+      (delete-region q p))))
 
 
 ;; M-w = copy line when no region (like VS Code C-c) — perfect 2025 version
@@ -310,7 +299,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 (set-face-attribute 'default nil :font "Iosevka" :height 140) ; Set default face font and height
 (set-frame-parameter nil 'font "Iosevka-14") ; Set initial frame font (for good measure)
 
-;; modeline
+;; ---------------------- MODELINE
 (use-package doom-modeline
   ;; :vc (:url "https://github.com/seagle0128/doom-modeline.git")
   :ensure t
@@ -319,23 +308,23 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (doom-modeline-icon t)
   (doom-modeline-lsp t)                          ; LSP icon
   (doom-modeline-minor-modes t)                  ; nil default. t for minions mode
-  (setopt doom-modeline-buffer-file-name-style 'truncate-nil) ;; 'auto
+  (doom-modeline-buffer-file-name-style 'truncate-nil) ;; 'auto
   (doom-modeline-mode t)
   (doom-modeline-buffer-state-icon t)
   (doom-modeline-height 30)
   (doom-modeline-bar-width 6))
 
+(setq mode-line-collapse-minor-modes '(rainbow-mode anzu-mode abbrev-mode drag-stuff-mode eldoc-mode))
+(setq mode-line-collapse-minor-modes-to "⚙")
 
-;; replaces minions for Emacs 31+ ???
-;; (setq mode-line-collapse-minor-modes t)
 (use-package minions
   ;; :vc (:url "https://github.com/tarsius/minions.git")
   :ensure t
   :hook (after-init . minions-mode)
   :custom
-  (minions-mode-line-lighter " 🛠️ ")
-  (minions-direct '(eglot-mode flymake-mode))
-  (minions-prominent-modes '(projectile-mode eglot-mode)))
+  (setopt minions-mode-line-lighter " 🛠️ ")
+  (setopt minions-direct '(eglot-mode flymake-mode))
+  (setopt minions-prominent-modes '(projectile-mode eglot-mode)))
 
 (use-package keycast
   :ensure t
@@ -350,135 +339,119 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;; M-x list-faces-display -- see everything
 ;; M-x describe-face
 
-;; ;; --- NEW GRUBER-DARKER MAPPINGS (for Vivendi overrides) ---
-;;     (gd-bg-base             . "#181818")   ; gruber-darker-bg
-;;     (gd-fg-base             . "#e4e4ef")   ; gruber-darker-fg
-;;     (gd-dim-bg              . "#282828")   ; gruber-darker-bg+1 (for dim/alt/diffs)
-;;     (gd-active-bg           . "#453d41")   ; gruber-darker-bg+2 (for region/active lines)
-;;     (gd-red                 . "#f43841")   ; gruber-darker-red
-;;     (gd-green               . "#73c936")   ; gruber-darker-green
-;;     (gd-yellow              . "#ffdd33")   ; gruber-darker-yellow
-;;     (gd-brown               . "#cc8c3c")   ; gruber-darker-brown (for comments)
-;;     (gd-quartz              . "#95a99f")   ; gruber-darker-quartz (for constants/fn names)
-;;     ))
-
 (defconst sjy2-modus-palette
   '(
     ;; Core Light Accents
-    (sjy2-bg                . "#FCFAF0")
-    (sjy2-bg-1              . "#E4E3CF")
-    (sjy2-bg-2              . "#C3C6C7")
-    (sjy2-fg                . "#181818") ; #282828
-    (sjy2-fg-1              . "#9fa2a3")
-    (sjy2-fg-2              . "#616161")
-    (sjy2-error             . "#F15952")
-    (sjy2-warning           . "#F8BB7C")
-    (sjy2-success           . "#87CF70")
-    (sjy2-quartz            . "#95A99F")   ; comment
-    (sjy2-eyes              . "#4B919E")   ; constant, fnname
-    (sjy2-wisteria          . "#9e95c7")   ; keyword
-    (sjy2-niagara           . "#96a6c8")
-    (sjy2-shrews            . "#2e5292")   ; cursor
-    (sjy2-shrews-dark       . "#002244")
-    (sjy2-line-highlight    . "#E8EBF5")   ; current line bg
-    (sjy2-modline-active    . "#96A6C8")
-    (sjy2-modline-inactive  . "#D5D8D9")
+    (sjy2-bg            . "#FCFAF0")
+    (sjy2-bg-1          . "#E4E3CF")
+    (sjy2-bg-2          . "#C3C6C7")
+    (sjy2-fg            . "#181818")     ; #282828
+    (sjy2-fg-1          . "#9fa2a3")
+    (sjy2-fg-2          . "#616161")
+    (sjy2-error         . "#F15952")
+    (sjy2-warning       . "#F8BB7C")
+    (sjy2-success       . "#87CF70")
+    (sjy2-quartz        . "#95A99F")     ; comment
+    (sjy2-eyes          . "#4B919E")     ; constant, fnname
+    (sjy2-wisteria      . "#9e95c7")     ; keyword
+    (sjy2-niagara       . "#96a6c8")
+    (sjy2-shrews        . "#2e5292")     ; cursor
+    (sjy2-shrews-dark   . "#002244")
+    (sjy2-line-hl       . "#E8EBF5")   ; current line bg
+    (sjy2-modline-act   . "#96A6C8")
+    (sjy2-modline-inact . "#D5D8D9")
 
-    ;; Core Dark Accents 
-    (sjy2-dark-bg           . "#181818")
-    (sjy2-dark-fg           . "#FCFAF0")    ; #E4E4EF
-    (sjy2-dark-fg-2         . "#A0A0A0")
-    (sjy2-dark-bg-1         . "#282828")
-    (sjy2-dark-bg-light     . "#2F3847")
-    (sjy2-dark-bg-highlight . "#3C495C")
-    (sjy2-niagara           . "#96a6c8")
-    (sjy2-dark-bg-highlight-2 . "#252B35")
-    (sjy2-dark-shrews         . "#A6B7DF")   ; cursor (dark)
-    (sjy2-dark-modline-active . "#A6B7DF")
-    (sjy2-dark-modline-inactive . "#35404F")))
-
+    ;; Core Dark Accents
+    (sjy2-dark-bg              . "#181818")
+    (sjy2-dark-bg-1            . "#282828")
+    (sjy2-dark-bg-2            . "#484848")
+    (sjy2-dark-fg              . "#FCFAF0")   ; #E4E4EF
+    (sjy2-dark-fg-2            . "#A0A0A0")
+    (sjy2-dark-bg-light        . "#2F3847")
+    (sjy2-dark-line-hl         . "#3C495C")
+    (sjy2-niagara              . "#96a6c8")   ; repeated on purpose?
+    (sjy2-dark-bg-highlight-2  . "#252B35")
+    (sjy2-dark-shrews          . "#A6B7DF")   ; cursor (dark)
+    (sjy2-dark-modline-act     . "#A6B7DF")
+    (sjy2-dark-modline-inact   . "#35404F")))
 
 (defconst sjy2-light-overrides
-  `((background            ,(cdr (assoc 'sjy2-bg                sjy2-modus-palette)))
-    (foreground            ,(cdr (assoc 'sjy2-fg                sjy2-modus-palette)))
-    (bg-dim                ,(cdr (assoc 'sjy2-bg-1              sjy2-modus-palette)))
-    (bg-alt                ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
-    (bg-active             ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
-    (bg-inactive           ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
-    (comment               ,(cdr (assoc 'sjy2-quartz            sjy2-modus-palette)))
-    (cursor                ,(cdr (assoc 'sjy2-shrews            sjy2-modus-palette)))
-    (keyword               ,(cdr (assoc 'sjy2-wisteria          sjy2-modus-palette)))
-    (builtin               ,(cdr (assoc 'sjy2-warning           sjy2-modus-palette)))
-    (constant              ,(cdr (assoc 'sjy2-eyes              sjy2-modus-palette)))
-    (err                   ,(cdr (assoc 'sjy2-error             sjy2-modus-palette)))
-    (bg-mode-line-active   ,(cdr (assoc 'sjy2-modline-active    sjy2-modus-palette)))
-    (bg-mode-line-inactive ,(cdr (assoc 'sjy2-modline-inactive  sjy2-modus-palette)))
-    (bg-hl-line            ,(cdr (assoc 'sjy2-line-highlight    sjy2-modus-palette)))
-    ;; Suggested additions for consistency
-    ;; (string                ,(cdr (assoc 'sjy2-wisteria          sjy2-modus-palette)))
-    ;; (docstring             ,(cdr (assoc 'sjy2-success           sjy2-modus-palette)))
-    (fnname                ,(cdr (assoc 'sjy2-eyes              sjy2-modus-palette)))
-    (variable              ,(cdr (assoc 'sjy2-fg-2              sjy2-modus-palette)))
-    (fg-hl-line            ,(cdr (assoc 'sjy2-fg                sjy2-modus-palette)))
-    (bg-region             ,(cdr (assoc 'sjy2-bg-2              sjy2-modus-palette)))
-    (type                  unspecified)
-    (border                unspecified)))
-
-
-(defconst sjy2-dark-overrides
-  `((background            ,(cdr (assoc 'sjy2-dark-bg             sjy2-modus-palette)))
-    (foreground            ,(cdr (assoc 'sjy2-dark-fg             sjy2-modus-palette)))
-    (bg-dim                ,(cdr (assoc 'sjy2-dark-bg-1           sjy2-modus-palette)))
-    (bg-alt                ,(cdr (assoc 'sjy2-dark-bg-light       sjy2-modus-palette)))
-    (bg-active             ,(cdr (assoc 'sjy2-dark-bg-highlight   sjy2-modus-palette)))
-    (bg-inactive           ,(cdr (assoc 'sjy2-dark-bg-highlight-2 sjy2-modus-palette)))
-    (comment               ,(cdr (assoc 'sjy2-quartz              sjy2-modus-palette)))
-    (cursor                ,(cdr (assoc 'sjy2-dark-shrews         sjy2-modus-palette)))
-    (keyword               ,(cdr (assoc 'sjy2-wisteria            sjy2-modus-palette)))
-    (builtin               ,(cdr (assoc 'sjy2-warning             sjy2-modus-palette)))
-    (constant              ,(cdr (assoc 'sjy2-eyes                sjy2-modus-palette)))
-    (err                   ,(cdr (assoc 'sjy2-error               sjy2-modus-palette)))
-    (bg-mode-line-active   ,(cdr (assoc 'sjy2-dark-modline-active sjy2-modus-palette)))
-    (bg-mode-line-inactive ,(cdr (assoc 'sjy2-dark-modline-inactive sjy2-modus-palette)))
-    (bg-hl-line            ,(cdr (assoc 'sjy2-dark-bg-highlight sjy2-modus-palette)))
-    (fnname                ,(cdr (assoc 'sjy2-eyes              sjy2-modus-palette)))
-    (variable              ,(cdr (assoc 'sjy2-dark-fg-2         sjy2-modus-palette)))
-    (fg-hl-line            ,(cdr (assoc 'sjy2-dark-fg           sjy2-modus-palette)))
-    (bg-region             unspecified)
+  `((background            ,(cdr (assoc 'sjy2-bg            sjy2-modus-palette)))
+    (foreground            ,(cdr (assoc 'sjy2-fg            sjy2-modus-palette)))
+    (bg-dim                ,(cdr (assoc 'sjy2-bg-1          sjy2-modus-palette)))
+    (bg-alt                ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
+    (bg-active             ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
+    (bg-inactive           ,(cdr (assoc 'sjy2-bg-2          sjy2-modus-palette)))
+    (comment               ,(cdr (assoc 'sjy2-quartz        sjy2-modus-palette)))
+    (cursor                ,(cdr (assoc 'sjy2-shrews        sjy2-modus-palette)))
+    (keyword               ,(cdr (assoc 'sjy2-wisteria      sjy2-modus-palette)))
+    (builtin               ,(cdr (assoc 'sjy2-warning       sjy2-modus-palette)))
+    (constant              ,(cdr (assoc 'sjy2-eyes          sjy2-modus-palette)))
+    (err                   ,(cdr (assoc 'sjy2-error         sjy2-modus-palette)))
+    (bg-hl-line            ,(cdr (assoc 'sjy2-line-hl       sjy2-modus-palette)))
+    ;; (string             ,(cdr (assoc 'sjy2-wisteria     sjy2-modus-palette)))
+    ;; (docstring          ,(cdr (assoc 'sjy2-success      sjy2-modus-palette)))
+    (fnname                ,(cdr (assoc 'sjy2-eyes         sjy2-modus-palette)))
+    (variable              ,(cdr (assoc 'sjy2-fg-2         sjy2-modus-palette)))
+    (fg-hl-line            ,(cdr (assoc 'sjy2-fg           sjy2-modus-palette)))
+    (bg-region             ,(cdr (assoc 'sjy2-bg-2         sjy2-modus-palette)))
     (fg-region             unspecified)
     (type                  unspecified)
-    (border                unspecified)))
+    (border                ,(cdr (assoc 'sjy2-bg-1          sjy2-modus-palette)))
+    (bg-mode-line-active   ,(cdr (assoc 'sjy2-modline-act   sjy2-modus-palette)))
+    (bg-mode-line-inactive ,(cdr (assoc 'sjy2-modline-inact sjy2-modus-palette)))))
+
+(defconst sjy2-dark-overrides
+  `((background            ,(cdr (assoc 'sjy2-dark-bg              sjy2-modus-palette)))
+    (foreground            ,(cdr (assoc 'sjy2-dark-fg              sjy2-modus-palette)))
+    (bg-dim                ,(cdr (assoc 'sjy2-dark-bg-1            sjy2-modus-palette)))
+    (bg-alt                ,(cdr (assoc 'sjy2-dark-bg-light        sjy2-modus-palette)))
+    (bg-active             ,(cdr (assoc 'sjy2-dark-bg-highlight    sjy2-modus-palette)))
+    (bg-inactive           ,(cdr (assoc 'sjy2-dark-bg-highlight-2  sjy2-modus-palette)))
+    (comment               ,(cdr (assoc 'sjy2-quartz               sjy2-modus-palette)))
+    (cursor                ,(cdr (assoc 'sjy2-dark-shrews          sjy2-modus-palette)))
+    (keyword               ,(cdr (assoc 'sjy2-wisteria             sjy2-modus-palette)))
+    (builtin               ,(cdr (assoc 'sjy2-warning              sjy2-modus-palette)))
+    (constant              ,(cdr (assoc 'sjy2-eyes                 sjy2-modus-palette)))
+    (err                   ,(cdr (assoc 'sjy2-error                sjy2-modus-palette)))
+    (bg-hl-line            ,(cdr (assoc 'sjy2-dark-line-hl         sjy2-modus-palette)))
+    (fnname                ,(cdr (assoc 'sjy2-eyes                 sjy2-modus-palette)))
+    (variable              ,(cdr (assoc 'sjy2-dark-fg-2            sjy2-modus-palette)))
+    (fg-hl-line            ,(cdr (assoc 'sjy2-dark-fg              sjy2-modus-palette)))
+    (bg-region             ,(cdr (assoc 'sjy2-dark-bg-2            sjy2-modus-palette)))
+    (fg-region             unspecified)
+    (type                  unspecified)
+    (border                ,(cdr (assoc 'sjy2-dark-bg-1            sjy2-modus-palette)))
+    (bg-mode-line-active   ,(cdr (assoc 'sjy2-dark-modline-active   sjy2-modus-palette)))
+    (bg-mode-line-inactive ,(cdr (assoc 'sjy2-dark-modline-inactive sjy2-modus-palette)))))
 
 
 (use-package modus-themes
   :ensure t
   :custom
-  ;; --- NEW CODE START ---
-  (modus-themes-custom-faces
-   ;; Use an alist of (FACE-NAME . PROPS)
-   '(
-     ;; Org Mode Heading Overrides for ALL Modus Themes
-     (org-level-1 ((t (:foreground ,(cdr (assoc 'sjy2-shrews-dark sjy2-modus-palette))))))
-     (org-level-2 ((t (:foreground ,(cdr (assoc 'sjy2-eyes        sjy2-modus-palette))))))
-     (org-level-3 ((t (:foreground ,(cdr (assoc 'sjy2-wisteria    sjy2-modus-palette))))))
-     (org-level-4 ((t (:foreground ,(cdr (assoc 'sjy2-niagara     sjy2-modus-palette))))))
-     (org-level-5 ((t (:foreground ,(cdr (assoc 'sjy2-quartz      sjy2-modus-palette))))))
-     ))
-  ;; --- NEW CODE END ---
+  (modus-themes-common-palette-overrides
+   `(
+     (fg-heading-1   ,(cdr (assoc 'sjy2-fg           sjy2-modus-palette)))
+     (fg-heading-2   ,(cdr (assoc 'sjy2-shrews-dark  sjy2-modus-palette)))
+     (fg-heading-3   ,(cdr (assoc 'sjy2-fg-2         sjy2-modus-palette)))
+     (fg-heading-4   ,(cdr (assoc 'sjy2-eyes         sjy2-modus-palette)))
+     (fg-heading-5   ,(cdr (assoc 'sjy2-wisteria     sjy2-modus-palette)))
+     (fg-heading-6   ,(cdr (assoc 'sjy2-niagara      sjy2-modus-palette)))
+     (fg-heading-7   ,(cdr (assoc 'sjy2-quartz       sjy2-modus-palette)))
+     ;; (bg-heading-1 ,some-bg-color)    ;  background tints
+     (border-mode-line-active bg-mode-line-active)
+     (border-mode-line-inactive bg-mode-line-inactive)))
+  
   (modus-themes-italic-constructs t)
   (modus-themes-bold-constructs   t)
   (modus-themes-mixed-fonts       t)
-  (modus-themes-headings '((1 . (1.4)) (2 . (1.3)) (3 . (1.2)) (4 . (1.1)) (t . (1.0))))
-  (modus-themes-common-palette-overrides
-   '((border-mode-line-active             bg-mode-line-active)
-     (border-mode-line-inactive           bg-mode-line-inactive)))
+  (modus-themes-headings '((1 . (1.4 semibold)) (2 . (1.3 semibold)) (3 . (1.2 semibold)) (4 . (1.2 semibold)) (t . (1.2 semibold))))
   (modus-themes-to-toggle '(modus-operandi-tinted modus-vivendi-tinted))
   ;; --- Apply Overrides ---
   (modus-operandi-palette-overrides        sjy2-light-overrides)
   (modus-operandi-tinted-palette-overrides sjy2-light-overrides)
   (modus-vivendi-palette-overrides         sjy2-dark-overrides)
   (modus-vivendi-tinted-palette-overrides  sjy2-dark-overrides)
-  
   :config
   (load-theme 'modus-operandi-tinted t)
   (keymap-global-set "C-c w t" #'modus-themes-toggle)
@@ -487,7 +460,6 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
               (when (featurep 'doom-modeline)
                 (doom-modeline-refresh-bars)
                 (force-mode-line-update t)))))
-
 
 ;; Fonts (centralised) ----------------------------------------------------
 (defgroup sjy2-fonts nil
@@ -638,7 +610,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :hook (dired-mode . dired-filter-mode))
 
-;; https://github.com/renard/dired-toggle-sudo
+;; https://github.com/renard/dired-toggle-sudo 
 (use-package dired-toggle-sudo
   :ensure t)
 
@@ -787,6 +759,40 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 ;; THE git porcelain
 (use-package magit)
+
+;; most popular jj porcelain?
+(use-package jj-mode
+  :ensure t
+  :vc (:url "https://github.com/bolivier/jj-mode.el")
+  :hook ((jj-log-mode  . hl-line-mode)
+         (jj-diff-mode . hl-line-mode))
+  :bind ("C-x j" . sjy2/jj-dwim)
+  :config
+  (setq jj-executable "~/.cargo/bin/jj")  ; Set the binary path if not in exec-path
+  ;; (with-eval-after-load 'popper
+  ;;   (add-to-list 'popper-reference-buffers "\\*jj-log:.*\\*")
+  ;;)
+  )
+
+;; integrate with Emacs' built-in vc. C-x v l (log) etc.
+(use-package vc-jj
+  :ensure t
+  :defer t
+  ;; vc-jj registers itself into `vc-handled-backends` automatically
+  :init
+  (add-to-list 'vc-handled-backends 'JJ))
+
+;; ;; the newcomer jj porcelain
+;; (use-package majutsu
+;;   :vc (:url "https://github.com/0WD0/majutsu"))
+
+(defun sjy2/jj-dwim ()
+  "Jump to jj-log or vc-dir depending on preference."
+  (interactive)
+  (if (fboundp 'jj-log)
+      (jj-log)
+    (vc-dir default-directory)))
+
 
 (use-package diff-hl
   :hook ((prog-mode . diff-hl-mode)
@@ -1344,7 +1350,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (;; C-x replacements
    ("C-x b"   . consult-buffer)
    ("C-x B"   . consult-buffer-other-window)
-   ("C-x C-F" . consult-buffer-other-frame)
+   ("C-x F"   . consult-buffer-other-frame)
    ("C-x C-r" . consult-recent-file)
    ("C-x r b" . consult-bookmark)
    ("C-x p b" . consult-project-buffer)
@@ -1494,7 +1500,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 ;;; ———————————————————————— 11 Notetaking & Writing (final 2025 perfection) ————————————————————————
 
-;; 1. Jinx – on-demand spell-checking (your preferred bindings + prefix map)
+;; Jinx – on-demand spell-checking (your preferred bindings + prefix map)
 (use-package jinx
   :ensure t
   :diminish
@@ -1517,19 +1523,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (keymap-set my-spelling-map "w" #'jinx-correct-word)
   (keymap-set my-spelling-map "N" #'jinx-correct-nearest))
 
-;; 2. Olivetti – minimalist writing experience
-(use-package olivetti
-  :ensure t
-  :bind ("C-c o" . olivetti-mode)
-  :custom
-  (olivetti-body-width 125)
-  (olivetti-minimum-body-width 100)
-  (olivetti-recall-visual-line-mode-entry-state t)
-  :hook (olivetti-mode . (lambda ()
-                           (when olivetti-mode
-                             (display-line-numbers-mode -1)))))
 
-;; 3. Denote – simple notetaking
+;;  Denote – simple notetaking
 (use-package denote
   :ensure t
   :demand t
@@ -1589,38 +1584,27 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (interactive)
     (consult-ripgrep denote-directory)))
 
-;; 4. One-key writing session (enhanced with auto-save)
-(defun sjy2/writing-session ()
-  "Start a focused Denote writing session with auto-save."
-  (interactive)
-  (call-interactively #'denote)
-  (olivetti-mode 1)
-  (jinx-mode 1)
-  (auto-save-visited-mode 1)  ; Auto-save while writing
-  (message "✍ Writing session started → C-c o = focus • C-c s = spelling • M-$ = correct"))
-
-(global-set-key (kbd "C-c w s") #'sjy2/writing-session)
-
-
 ;;; ———————————————————————— 20 Org Shoggoth ———————————————————————
 
 (use-package org
   :ensure nil
-  :demand t
   :hook ((org-mode . visual-line-mode)
          (org-mode . variable-pitch-mode)
-         (org-mode . org-indent-mode)
-         (org-mode . org-modern-mode)          ; pretty everything
+         ;;  (org-mode . org-indent-mode) ; org-indent-mode basically incompatible with org-modern-mode
+         (org-mode . org-modern-indent-mode)
          (org-mode . org-appear-mode))         ; show markers only on hover
-
-  :bind (("C-c a" . org-agenda)
-         ("C-c c" . org-capture)
-         ("C-c l" . org-store-link))
+  :bind (("C-c a"       . org-agenda)
+         ("C-c c"       . org-capture)
+         ("C-c l"       . org-store-link)
+	       ("M-<left>"    . org-metaleft)
+	       ("M-<right>"   . org-metaright)
+	       ("M-S-<left>"  . org-shiftmetaleft)
+	       ("M-S-<right>" . org-shiftmetaright))
   :custom
   (org-directory "~/MEGA/emacs-notes/denote/")
-  ;; (setopt org-directory    (expand-file-name "org/"        sjy2-etc-dir))
+  ;; (setopt org-directory    (expand-file-name "org/"        sjy2-scratch-dir))
   (org-agenda-files '("~/MEGA/emacs-notes/denote/agenda.org"))
-  
+
   ;; Startup
   (org-startup-indented t)
   (org-startup-folded t)
@@ -1633,11 +1617,11 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-fontify-done-headline t)
   (org-fontify-quote-and-verse-blocks t)
   (org-fontify-whole-heading-line t)
-  (org-ellipsis " ⤵")  ; Note: space before for better spacing
-  (org-image-actual-width '(450))
+  (org-ellipsis " ⤵")
+  (org-image-actual-width '(500))
   (org-eldoc-breadcrumb-separator " → ")
   (org-pretty-entities-include-sub-superscripts t)
-  
+
   ;; Editing behaviour
   (org-special-ctrl-a/e t)
   (org-support-shift-select 'always)
@@ -1645,50 +1629,42 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-insert-heading-respect-content t)
   (org-return-follows-link t)  ; RET follows links
   (org-loop-over-headlines-in-active-region t)  ; Operate on region headlines
-  
+
   ;; Source blocks
   (org-src-tab-acts-natively t)
   (org-src-preserve-indentation t)
-  (org-edit-src-content-indentation 0)
-  (org-src-fontify-natively t)  ; Syntax highlight in blocks
+  (org-adapt-indendation t)
+  (org-edit-src-content-indentation t)
+  (org-src-fontify-natively t)      ; Syntax highlight in blocks
   (org-confirm-babel-evaluate nil)  ; Don't ask before evaluating
 
   ;; Agenda
   (org-agenda-start-with-log-mode t)
   (org-agenda-window-setup 'current-window)
-  
+
   ;; TODOs
   (org-log-done 'time)
   (org-log-into-drawer t)  ; Keep logs in :LOGBOOK: drawer
 
   :config
   (setq org-todo-keywords
-        '((sequence "TODO(t)" "HOLD(h)" "WAIT(w)" "INFO(i)" "REDO(r)"
-                    "|" "DONE(d)" "MISS(m)" "PASS(p)" "SKIP(s)" "CANC(c)")))
-
+	      '((sequence "TODO(t)" "REDO(r)" "INFO(i)" "WAIT(w)"
+                    "|" "DONE(d)" "MISS(m)" "PASS(p)" "CANC(c)")))
   (setq org-todo-keyword-faces
-        '(("TODO" . (:background "#f7768e" :weight bold :box t))
-          ("REDO" . (:background "#f7768e" :weight bold :box t))
-          ("DONE" . (:background "#73daca" :weight bold :box t))
-          ("HOLD" . (:background "#ff9e64" :weight bold :box t))
-          ("WAIT" . (:background "#bb9af7" :weight bold :box t))
-          ("INFO" . (:background "#9ece6a" :weight bold :box t))
+	      '(("TODO" . (:background "#f7768e" :weight bold :box t :foreground "#181818"))
+          ("REDO" . (:background "#f7768e" :weight bold :box t :foreground "#181818"))
+          ("INFO" . (:background "#73daca" :weight bold :box t :foreground "#181818"))
+          ("WAIT" . (:background "#ff9e64" :weight bold :box t :foreground "#181818"))
+          ("DONE" . (:background "#9ece6a" :weight bold :box t :foreground "#181818"))
           ("MISS" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))  ; blue-gray
-          ("SKIP" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))  
           ("PASS" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))
-          ("CANC" . (:background "#565f89" :weight bold :box t :foreground "#ffffff"))))
+          ("CANC" . (:background "#565f89" :weight bold :box t :foreground "#ffffff")))))
 
-  (setq org-modern-todo-faces org-todo-keyword-faces) ; Make org-modern respect my authority
-  
-  (add-hook 'org-mode-hook
-            (lambda ()
-              (remove-hook 'post-command-hook 'org--adapt-indentation t))))
-
-;; ———————————————————————— org-modern – Modus-aware ————————————————————————
+;; ———————————————————————— org-modern  ————————————————————————
 (use-package org-modern
   :ensure t
-  :demand t
-  :hook ((org-mode . org-modern-mode)
+  :after org
+  :hook ((org-mode                 . org-modern-mode)
          (org-agenda-finalize-hook . org-modern-agenda))
   :custom  
   (org-modern-replace-stars '("◉" "○" "●" "◦" "•" "·"))
@@ -1696,7 +1672,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-hide-stars 'leading)
   (org-modern-star 'replace)  ; nil or fold (triangles)
   (org-modern-table t)
-  (org-modern-todo nil)
+  (org-modern-todo nil)       ; explicity set with org-todo-keyword-faces
   (org-modern-priority t)
   (org-modern-checkbox 
    '((?X . "☑")
@@ -1714,61 +1690,55 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-tag          t)
   (org-modern-timestamp    t)
   (org-modern-statistics   t)
+
   (org-modern-block-fringe nil)
   (org-modern-block-name
-   '(("src"      . ("⎡" . "⎣"))
-     ("example" . ("⎡" . "⎣"))
-     ("quote"   . ("❝" . "❞"))
-     (t         . ("·" . "·"))))
-
-  (org-modern-block-name
-   `(("src" :background ,(cdr (assoc 'sjy2-bg-1        sjy2-modus-palette)) :extend t)
-     (t     :background ,(cdr (assoc 'sjy2-bg-1        sjy2-modus-palette)) :extend t)))
+   '(
+     ("src"        . (">>> "  "<<<"))
+     ("example"    . ("----- "  "-----"))
+     ("quote"      . ("❝ "   "❞"))
+     ("verse"      . ("❦ verse"   "❦"))
+     ("center"     . ("◉ "   "◉"))
+     ("export"     . ("⬆ "   "⬆"))
+     ("comment"    . ("... comment"  "..."))
+     (t            . ("----- "  "-----"))))
 
   :config
-  ;; Fixed: Unified theme-aware faces (runs early, no duplicates)
-  (defun sjy2/org-modern-update-faces ()
-    "Apply org-modern faces respecting Modus light/dark."
-    (let* ((light (eq (frame-parameter nil 'background-mode) 'light))
-           (block-bg (if light
-                         (cdr (assoc 'sjy2-bg-1 sjy2-modus-palette))
-                       "#282828"))
-           (meta-bg (if light "#e8e8e8" "#323232"))
-           (meta-fg (if light "#666666" "#999999")))
-      (custom-set-faces
-       `(org-block                ((t (:inherit fixed-pitch :background ,block-bg :extend t))))
-       `(org-block-begin-line     ((t (:inherit org-meta-line :background ,meta-bg :foreground ,meta-fg :height 0.9))))
-       `(org-block-end-line       ((t (:inherit org-block-begin-line))))
-       `(org-code                 ((t (:inherit (shadow fixed-pitch)))))
-       `(org-verbatim             ((t (:inherit (shadow fixed-pitch)))))
-       `(org-table                ((t (:inherit fixed-pitch))))
-       `(org-modern-label         ((t (:inherit fixed-pitch :height 0.9)))))))
+  (setq org-modern-todo-faces org-todo-keyword-faces))
 
-  ;; Fixed: Apply on org-mode entry + theme change (no duplicate hooks)
-  (add-hook 'org-mode-hook #'sjy2/org-modern-update-faces)
-  (add-hook 'modus-themes-after-load-theme-hook #'sjy2/org-modern-update-faces)
+(defun sjy2/org-modern-update-faces ()
+  "Apply org-modern faces respecting Modus light/dark."
+  (let* ((light (eq (frame-parameter nil 'background-mode) 'light))
+         (block-bg  (if light "#ffffff" "#282828"))
+         (border-bg (if light "#e8e8e8" "#383838"))
+         (meta-bg   (if light "#e8e8e8" "#323232"))
+         (meta-fg  ( if light "#666666" "#999999")))
+    (custom-set-faces
+     `(org-block                ((t (:inherit fixed-pitch :background ,block-bg  :extend t))))
+     `(org-block-begin-line     ((t (:inherit org-meta-line :background ,meta-bg :foreground ,meta-fg :height 0.9))))
+     `(org-block-end-line       ((t (:inherit org-meta-line :background ,meta-bg :foreground ,meta-fg :height 0.9))))
+     `(org-code                 ((t (:inherit (shadow fixed-pitch)))))
+     `(org-verbatim             ((t (:inherit (shadow fixed-pitch)))))
+     `(org-table                ((t (:inherit fixed-pitch))))
+     `(org-modern-label         ((t (:inherit fixed-pitch :height 0.9)))))))
 
-  ;; Initial run
-  (sjy2/org-modern-update-faces)
-
-  ;;:config
-  (global-org-modern-mode 1)
-  (add-hook 'org-mode-hook            #'org-modern-mode)
-  (add-hook 'org-agenda-finalize-hook #'org-modern-agenda))
+;; Initial run
+(sjy2/org-modern-update-faces)
+(add-hook 'org-mode-hook                      #'sjy2/org-modern-update-faces)
+(add-hook 'modus-themes-after-load-theme-hook #'sjy2/org-modern-update-faces)
 
 
 ;; Slightly rounded corners (org-modern-indent adds this automatically if installed)
 (use-package org-modern-indent
   :after org-modern
   :vc (:url "https://github.com/jdtsmith/org-modern-indent" :rev :newest)
-  :config (add-hook 'org-mode-hook #'org-modern-indent-mode))
+  :hook (org-mode . org-modern-indent-mode))
 
 ;; Show hidden emphasis markers depending on position of point.
 (use-package org-appear
-  ;; :vc (:url "https://github.com/awth13/org-appear"))
   :after org
-  :hook
-  (org-mode . org-appear-mode))
+  ;; :vc (:url "https://github.com/awth13/org-appear"))
+  :hook  (org-mode . org-appear-mode))
 
 ;; Left-side outline tree
 (use-package org-side-tree
@@ -1821,6 +1791,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :init
   (setq popper-reference-buffers
         '("\\*TeX Help\\*"
+          "\\*jj-log:.*\\*"  ; Matches the *jj-log:repo-name* pattern
+          "\\*Emacs log\\*"
           help-mode
           helpful-mode
           compilation-mode
@@ -1847,7 +1819,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
                      (define-key map "`" #'popper-cycle)
                      map))))))
 
-;; Help buffers appear on right side
+;; Certain buffers appear on right side
 (add-to-list 'display-buffer-alist
              '("\\*\\(Help\\|helpful\\).*\\*"
                (display-buffer-in-side-window)
@@ -1855,9 +1827,23 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
                (slot . 0)
                (window-width . 80)))
 
+(setq display-buffer-alist
+      (append
+       '(;; Catch help and helpful buffers
+         ("\\*\\(Help\\|helpful\\).*\\*"
+          (display-buffer-in-side-window)
+          (side . right)
+          (slot . 0)
+          (window-width . 80))
+         ;; Catch log buffers
+         ("\\*\\(jj-log:.*\\|Emacs log\\)\\*"
+          (display-buffer-in-side-window)
+          (side . right)
+          (slot . 1) ; Using slot 1 keeps it distinct if a help buffer is also open
+          (window-width . 80)))
+       display-buffer-alist))
+
 ;;; ———————————————————————— 90 sjy2 custom code – 2025 cleaned  ————————————————————————
-
-
 
 ;; Prot’s keyboard-quit-dwim – kept (still the gold standard)
 (defun prot/keyboard-quit-dwim ()

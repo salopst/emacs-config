@@ -130,9 +130,10 @@ org-mode
 
 (tad "#+title: " p n "#+author: " (s "salopst") n "#+language: en" n "#+date: " (format-time-string "[%Y-%m-%d %a]") n r)
 
-(over "#+begin_verse" n> r> n> "#+end_verse")
-(oquo "#+begin_quote" n> r> n> "#+end_quote")
+(ver "#+begin_verse" n> r> n> "#+end_verse")
+(quo "#+begin_quote" n> r> n> "#+end_quote")
 (sh  "#+begin_src shell" n> r> n> "#+end_src" :post (org-edit-src-code))
+(src  "#+begin_src" n> r> n> "#+end_src" :post (org-edit-src-code))
 (elisp  "#+begin_src emacs-lisp" n> r> n> "#+end_src" :post (org-edit-src-code))
 (latex
  "#+LATEX_CLASS: article" n

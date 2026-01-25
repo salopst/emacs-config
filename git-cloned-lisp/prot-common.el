@@ -1,6 +1,6 @@
 ;;; prot-common.el --- Common functions for my dotemacs -*- lexical-binding: t -*-
 
-;; Copyright (C) 2020-2023  Protesilaos Stavrou
+;; Copyright (C) 2020-2026  Protesilaos Stavrou
 
 ;; Author: Protesilaos Stavrou <info@protesilaos.com>
 ;; URL: https://protesilaos.com/emacs/dotemacs
@@ -25,13 +25,10 @@
 ;;; Commentary:
 ;;
 ;; Common functions for my Emacs: <https://protesilaos.com/emacs/dotemacs/>.
-;;
-;; Remember that every piece of Elisp that I write is for my own
-;; educational and recreational purposes.  I am not a programmer and I
-;; do not recommend that you copy any of this if you are not certain of
-;; what it does.
 
 ;;; Code:
+
+;; TODO 2025-12-21: I need to review all this.
 
 (eval-when-compile
   (require 'subr-x)
@@ -40,6 +37,24 @@
 (defgroup prot-common ()
   "Auxiliary functions for my dotemacs."
   :group 'editing)
+
+(defvar prot-common-file-extensions
+  '((archive "tar" "rar" "zip" "xz")
+    (image "jpg" "png" "jpeg")
+    (audio "mp3" "flac" "ogg" "wav")
+    (video "mkv" "webm" "mp4")
+    (text "org" "txt" "md")
+    (document "pdf" "epub" "info" "texi")
+    (diff "diff" "patch")
+    (program "sh" "el" "c" "py" "js" "html" "xml")
+    (program-data "yaml" "yml" "toml" "conf" "json" "css"))
+  "Some common file extensions grouped by type.")
+
+(defun prot-common--get-file-type-regexp (type)
+  "Return regular expression for file TYPE.
+TYPE is a `car' among the elements of `prot-common-file-extensions'."
+  (when-let* ((extensions (alist-get type prot-common-file-extensions)))
+    (format "\\.%s\\'" (regexp-opt extensions))))
 
 ;;;###autoload
 (defun prot-common-number-even-p (n)
@@ -126,6 +141,35 @@ floating points: 16.666666666666664 => 16.667."
   (if (> seconds 3599)
       (prot-common-seconds-to-hours seconds)
     (prot-common-seconds-to-minutes seconds)))
+
+(defvar prot-common-temperature-history nil
+  "Minibuffer history for temperature conversions.")
+
+;;;###autoload
+(defun prot-common-fahrenheit-to-celsius (degree)
+  "Convert Fahrenheit DEGREE to Celsius."
+  (interactive
+   (list
+    (read-number "Fahrenheit DEGREE: " nil 'prot-common-temperature-history)))
+  (let* ((converted-degrees (/ (- degree 32) 1.8))
+         (f-string (number-to-string degree))
+         (c-string (number-to-string converted-degrees)))
+    (message "%s degrees Fahrenheit is %s degrees Celcius"
+             (propertize f-string 'face 'error)
+             (propertize c-string 'face 'success))))
+
+;;;###autoload
+(defun prot-common-celsius-to-fahrenheit (degree)
+  "Convert Celsius DEGREE to Fahrenheit."
+  (interactive
+   (list
+    (read-number "Celsius DEGREE: " nil 'prot-common-temperature-history)))
+  (let* ((converted-degrees (+ (* degree 1.8) 32))
+         (c-string (number-to-string degree))
+         (f-string (number-to-string converted-degrees)))
+    (message "%s degrees Celcius is %s degrees Fahrenheit"
+             (propertize c-string 'face 'success)
+             (propertize f-string 'face 'error))))
 
 ;;;###autoload
 (defun prot-common-rotate-list-of-symbol (symbol)
@@ -227,7 +271,7 @@ If FRAME is non-nil, inspect the current frame."
 ;;;###autoload
 (defun prot-common-completion-category ()
   "Return completion category."
-  (when-let ((window (active-minibuffer-window)))
+  (when-let* ((window (active-minibuffer-window)))
     (with-current-buffer (window-buffer window)
       (completion-metadata-get
        (completion-metadata (buffer-substring-no-properties
@@ -339,7 +383,7 @@ Return the exit code and output in a list."
 ;;;###autoload
 (defun prot-common-auth-get-field (host prop)
   "Find PROP in `auth-sources' for HOST entry."
-  (when-let ((source (auth-source-search :host host)))
+  (when-let* ((source (auth-source-search :host host)))
     (if (eq prop :secret)
         (funcall (plist-get (car source) prop))
       (plist-get (flatten-list source) prop))))
