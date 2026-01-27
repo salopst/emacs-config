@@ -10,13 +10,30 @@
        (mode-io-correlate
 	" --forward-search-file %b --forward-search-line %n --inverse-search \"emacsclient --no-wait +%2:%3 %1\""))
       "sioyek")))
- '(bibtex-aux-opt-alist
-   '(("keywords" "Keywords to describe the entry" "")
-     ("file" "Link to a document file" "")) nil nil "Customized with use-package bibtex")
- '(org-fold-catch-invisible-edits 'show-and-error nil nil "Customized with use-package org")
- '(package-selected-packages nil)
+ '(package-selected-packages
+   '(ace-window aggressive-indent all-the-icons-completion anzu auctex
+		beacon biblio bibtex-actions bibtex-completion citar
+		citar-denote colorful-mode consult-dir corfu crux
+		csv-mode deadgrep denote diff-hl dired-filter
+		dired-git-info dired-subtree dired-toggle-sudo
+		doom-modeline drag-stuff embark-consult expand-region
+		fd-dired fold-this goto-last-change gptel helpful
+		iedit jinx jj-mode keycast major-mode-icons majutsu
+		marginalia markdown-mode mcp minions mixed-pitch
+		modus-themes multiple-cursors nerd-icons-dired nov
+		olivetti orderless org-appear org-auto-tangle
+		org-download org-modern org-modern-indent
+		org-side-tree org-sticky-header-mode outline-magic
+		popper powerthesaurus pulsar puni rainbow-delimiters
+		rainbow-mode rg simple-modeline smartparens tempel
+		treesit-auto typst-ts-mode ultra-scroll undo-fu unfill
+		vc-jj vertico visual-regexp-steroids vlf vterm-toggle
+		vundo wiktionary-bro yaml-mode zzz-to-char))
  '(package-vc-selected-packages
-   '((majutsu :url "https://github.com/0WD0/majutsu")
+   '((bibtex-actions :url "https://github.com/mbosley/bibtex-actions")
+     (typst-ts-mode :url
+		    "https://codeberg.org/meow_king/typst-ts-mode")
+     (majutsu :url "https://github.com/0WD0/majutsu")
      (jj-mode :url "https://github.com/bolivier/jj-mode.el")
      (kbd-mode :url "https://github.com/kmonad/kbd-mode")
      (vundo :url "https://github.com/casouri/vundo")
@@ -25,7 +42,6 @@
      (org-sticky-header-mode :url
 			     "https://github.com/alphapapa/org-sticky-header")
      (denote-menu :url "https://github.com/namilus/denote-menu")
-     (bibtex-actions :url "https://github.com/mbosley/bibtex-actions")
      (nov :url "https://github.com/emacsmirror/nov")
      (dired-hist :url "https://github.com/karthink/dired-hist.git")
      (ultra-scroll :url "https://github.com/jdtsmith/ultra-scroll")
@@ -45,7 +61,6 @@
      (org-git :url
 	      "https://git.savannah.gnu.org/git/emacs/org-mode.git"
 	      :lisp-dir "lisp")
-     (typst-ts-mode :url "https://git.sr.ht/~meow_king/typst-ts-mode/")
      (esup :url "https://github.com/jschaf/esup")
      (denote-explore :url "https://github.com/pprevos/denote-explore")
      (citar-denote :url "https://github.com/pprevos/citar-denote")))

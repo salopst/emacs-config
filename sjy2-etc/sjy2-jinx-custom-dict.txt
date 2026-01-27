@@ -1,74 +1,128 @@
 ;;-*-coding: utf-8;-*-
-;; Jinx Custom Dictionary 2025-12-10
+;; Jinx Custom Dictionary 2026-01-28
+;; Written to ~/.config/enchant/en_GB.pwl from Emacs.
 ;; Unique words, one per line.
 
 ;;; RANDO
 Maranatha              ; Aramaic "Come, O Lord! μαράνα θά" (1 Cor 16:22)
 
+;;; WTF not in aspell??
+transactional
+discoverable
+discoverability
+scalable
+scalability
 
 ;;; THEOLOGY
 anamnesis              ; liturgical remembering
 antinomian             ; against moral law
 apokatastasis          ; universal restoration
 apophatic              ; theology via negation (what God is not)
+cataphatic             ; "positive" theology (what God is) 
 Christotokos           ; Christ-bearer
+Circumcellions         ; radical 4th-5th c. North African Donatist groups
 consubstantiation      ; presence with elements
+Diatessaron            ; "Through the four"; Tatian's gospel harmony (c. 170 AD)
 dyophysite             ; person holding Christ has two natures
 dyophysitism           ; doctrine of two natures of Christ
 eisegesis              ; reading into the text
+Emanationism           ; things derived from a 'first reality' (Lat. emanare)
+Embolism               ; prayer interpolation amplifying the Lord's Prayer
 epiclesis              ; invocation of Holy Spirit in Eucharist
 eschatology            ; study of the end times
 eschaton               ; end point of history
 exegesis               ; drawing out meaning from the text
+filioque               ; "and the Son" (Nicene Creed clause)
+Gehenna                ; Valley of Hinnom (Gē-Hīnnōm); site of fiery judgment
+Hadith                 ; Islamic oral tradition of Muhammad's words/actions
 hamartiology           ; study of sin
 henotheism             ; worship of one god without denying others
 henotheistic
-hermeneutics           ; interpretation theory
+hermeneutics           ; theory and methodology of interpretation
 heterousios            ; of different substance
-hesychasm              ; Eastern contemplative prayer tradition
+hesychasm              ; tradition of stillness (hēsychia) and Jesus prayer
 homoiousios            ; of similar substance (corrected spelling)
 homoiouisios           ; (legacy variant spelling)
+Homoousion             ; same in essence (ὁμοούσιον); Nicene Creed term
 homousios              ; of same substance (Nicene Creed)
 homoousios
+homoousia
+homoousion
+Hudud                  ; "borders/limits"; specific punishments in Islamic law
 hypostasis             ; individual existence/substance
+hypostatic
 infra                  ; below (e.g. infralapsarian)
 kenosis                ; self-emptying of Christ
+Kerygma                ; "proclamation" (κήρυγμα); core of early church teaching
 lapsarian              ; relating to the fall
 logos                  ; divine reason/word
+Mishnah                ; first written collection of Jewish Oral Torah (3rd c. CE)
+monergism              ; belief that God is the sole agent in salvation
 monophysite
 monophysitism          ; Christ has a single (divine) nature
-noetic                 ; relating to the mind or intellect
+noetic                 ; relating to the mind or intellect (noesis)
 nous                   ; mind, intellect
 ousia                  ; essence, being
+Panentheism            ; "all in God"; divine intersects every part of universe
+Paradosis              ; tradition (παράδοσις); handing down of teachings
 paraclete              ; advocate; title for the Holy Spirit
 parousia               ; second coming of Christ
 pelagianism            ; denies original sin
 perichoresis           ; mutual indwelling of Trinity
 Peshitta               ; Syriac Bible (transl. from Herew Tanakh and GNT)
+philoxenia             ; hospitality (lit. friend to a stranger)
+philoxenic
+philoxenically
 pleroma                ; fullness of God
 prosopon               ; person, mask
+Quartodeciman          ; dispute in early Christianity regarding the date of Easter
 semi-pelagian          ; middle ground on grace/free will
+Shephelah              ; transitional maritime hills in Judea
+Shirk                  ; "association" (Arabic); idolatry or polytheism in Islam
+Shuckling              ; ritual swaying during Jewish prayer (Yid. shoklen)
 soteriology            ; study of salvation
+Spiration              ; manner in which the Holy Spirit proceeds
 supra                  ; above/beyond (e.g. supralapsarian)
 synergism              ; cooperation of human & divine wills
+Taḥrīf                 ; "distortion" (Arabic); believed alterations to the Bible
+Taqiyya                ; "prudence" (Arabic); concealing faith for protection
+Targum                 ; Aramaic translation/interpretation of Hebrew Bible
+theopneustos           ; God-breathed, inspired by God (θεόπνευστος)
 theosis                ; deification, becoming like God
 theotokos              ; God-bearer (title for Mary)
 transubstantiation     ; bread/wine become body & blood
-      
+Vaticinium ex eventu   ; "prophecy from the event"; hindsight bias written as foretelling
+
 
 ;;; TECHNOLOGY
+aspell
+cloudflare
+commandline
+config
 dabbrev
 daemonize
+Emacs
+Github
+Gitlab
+hunspell
+hyperv
+jinx
+kubernetes
 modeline
-emacs
 modus
+nushell
+nuspell
+oauth
+oauth2
+protobuf
+qemu
 shortcode
+strace
+subresource
 tempel
 vertico
-jinx
-Gitlab
-Github
+vmware
+vscode
 markdownify
 monorepo
-subresource
 webp
