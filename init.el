@@ -1484,12 +1484,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 (use-package powerthesaurus
   :bind
-  ("M-m t" . powerthesaurus-lookup-dwim)
-  ("M-m s" . powerthesaurus-lookup-synonyms-dwim)
-  ("M-m a" . powerthesaurus-lookup-antonyms-dwim)
-  ("M-m r" . powerthesaurus-lookup-related-dwim)
-  ("M-m w" . powerthesaurus-lookup-definitions-dwim)
-  ("M-m S" . powerthesaurus-lookup-sentences-dwim)
+  ("M-m t" . powerthesaurus-lookup-dwim) ;; this does it all anyway
   :config)
 
 
@@ -1917,13 +1912,36 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
         ((> (minibuffer-depth) 0) (abort-recursive-edit))
         (t (keyboard-quit))))
 
+;; on emacs restart
+(featurep 'sjy2/md-agenda-mode)      ;; nil
+(featurep 'sjy2-md-agenda-mode)      ;; nil
+(locate-library "sjy2-md-agenda")    ;; "/home/salopst/.config/emacs/sjy2-lisp/sjy2-md-agenda.el"
+(featurep 'sjy2/md-agenda-new-entry) ;; nil
+(fboundp 'sjy2-md-agenda-mode)       ;; t
+(fboundp 'sjy2/md-agenda-mode)       ;; nil
+
+
+
+
+(use-package sjy2-md-agenda
+  :load-path "sjy2-lisp"
+  :demand t
+  :hook (markdown-mode . sjy2-md-agenda-mode)
+  :init
+  (define-prefix-command 'sjy2-md-agenda-prefix)
+  (global-set-key (kbd "M-m a") 'sjy2-md-agenda-prefix)
+  :bind (("M-m a n" . sjy2-md-agenda-new-entry)
+         ("M-m a m" . sjy2-md-agenda-mode)))
+
+
+
 ;;; ———————————————————————— 100 Startup message ————————————————————————
-(add-hook 'emacs-startup-hook
-          (lambda ()
-            (message "Emacs ready in %.2f s with %d GCs (%s mode)"
-                     (float-time (time-subtract after-init-time before-init-time))
-                     gcs-done
-                     (if (daemonp) "daemon" "regular"))))
+  (add-hook 'emacs-startup-hook
+            (lambda ()
+              (message "Emacs ready in %.2f s with %d GCs (%s mode)"
+                       (float-time (time-subtract after-init-time before-init-time))
+                       gcs-done
+                       (if (daemonp) "daemon" "regular"))))
 
 (provide 'init.el)
 ;;; init.el ends here
