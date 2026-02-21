@@ -1,0 +1,16 @@
+Dired
+---
++ create dir
+e create file (more like touch)
+C-x C-f -- create file and open for editing
+^ dired-up-directory
+b dired-up-directory ( I think I defined this myself somewhere... "" for back)
+f dired-find-file
+RET dired-find-alternate-file
+
+
+r sjy2/dired-rename-current-file
+R dired-do-rename
+S symlink
+
+C-x C-j dired-jump (back to the dired buffer I came from)

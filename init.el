@@ -6,41 +6,6 @@
 
 ;;; Code:
 
-;;; Compiler declarations for init.el to silence Flycheck / byte-compile warnings
-
-;; Keybinding functions
-(declare-function sjy2/insert-timestamp "sjy2-custom-code")
-(declare-function sjy2/rgrep-selected "sjy2-custom-code")
-(declare-function sjy2/eval-and-copy "sjy2-custom-code")
-(declare-function sjy2/toggle-transparency "sjy2-custom-code")
-(declare-function sjy2/markdown-table-to-org "sjy2-custom-code")
-(declare-function sjy2/toggle-maximize-window "sjy2-custom-code")
-(declare-function sjy2/window-split-toggle "sjy2-custom-code")
-(declare-function sjy2/toggle-window-swap "sjy2-custom-code")
-(declare-function sjy2/cycle-windows-and-frames "sjy2-custom-code")
-(declare-function sjy2/copy-buffer-name "sjy2-custom-code")
-(declare-function sjy2/copy-file-name "sjy2-custom-code")
-(declare-function sjy2/save-with-timestamp-prefix "sjy2-custom-code")
-(declare-function sjy2/dired-rename-current-file "sjy2-custom-code")
-(declare-function sjy2/org-export-pdf-and-open "sjy2-custom-code")
-(declare-function sjy2/recompile-init "sjy2-custom-code")
-(declare-function sjy2/clean-and-recompile "sjy2-custom-code")
-(declare-function sjy2/update-vc-packages "sjy2-custom-code")
-(declare-function sjy2/wrap-parens "sjy2-custom-code")
-(declare-function sjy2/wrap-brackets "sjy2-custom-code")
-(declare-function sjy2/wrap-braces "sjy2-custom-code")
-(declare-function sjy2/wrap-quotes "sjy2-custom-code")
-(declare-function sjy2/wrap-slashes "sjy2-custom-code")
-(declare-function sjy2/wrap-asterisks "sjy2-custom-code")
-(declare-function sjy2/wrap-tildes "sjy2-custom-code")
-(declare-function sjy2/wrap-interactive "sjy2-custom-code")
-(declare-function sjy2/unwrap "sjy2-custom-code")
-(declare-function sjy2/cycle-case-region-or-word "sjy2-custom-code")
-(declare-function sjy2/enlarge-window-horizontally "sjy2-custom-code")
-(declare-function sjy2/enlarge-window-vertically "sjy2-custom-code")
-(declare-function sjy2/shrink-window-horizontally "sjy2-custom-code")
-(declare-function sjy2/shrink-window-vertically "sjy2-custom-code")
-
 
 ;;; ———————————————————————— 00 Directory setup & Local Lisp ————————————————————————
 (defconst sjy2-cache-dir      (expand-file-name "sjy2-cache/"      user-emacs-directory))
@@ -89,14 +54,14 @@
   :config
   (message "sjy2-custom-code loaded"))
 
-;;; AI, LLM, ChatGPT etc.
+;; AI, LLM, ChatGPT etc.
 (use-package sjy2-gptel
   :load-path (lambda () (list sjy2-lisp-dir))
   :defer t
   :config
   (message "sjy2-gptel loaded"))
 
-;;; TODO : Stick all the direds in this file?
+;; TODO : Stick all the direds in this file?
 (use-package sjy2-dired-open-with
   :load-path "~/.config/emacs/sjy2-lisp/"
   :demand t
@@ -252,18 +217,15 @@
 (keymap-global-set "C-c a"      #'org-agenda)
 (keymap-global-set "C-c l"      #'org-store-link)
 ;; WARNING -- external dependencies
-(keymap-global-set "C-c t t"    #'sjy2/toggle-transparency)
+
 (keymap-global-set "C-g"        #'prot/keyboard-quit-dwim)
-(keymap-global-set "C-x o"      #'sjy2/cycle-windows-and-frames)
 (keymap-global-set "C-x C-r"    #'recentf-open) ; override `find-file-read-only'
-(keymap-global-set "M-u"        #'sjy2/cycle-case-region-or-word)
-(keymap-global-set "C-x C-d"    #'dired) ; default list-directory
-;;(keymap-global-set "C-c d"      #'duplicate-dwim) ; Emacs default version of the crux
+(keymap-global-set "C-x C-d"    #'dired) ; default: list-directory
 (keymap-global-set "C-c d"      #'crux-duplicate-current-line-or-region)
 (keymap-global-set "C-c D D"    #'crux-delete-file-and-buffer)
 (keymap-global-set "C-c o a"    #'crux-smart-open-line-above)
-(keymap-global-set "C-c o b"    #'crux-smart-open-line)   ; open line below
-(keymap-global-set "C-c o p"    #'ffap)                   ; find file at point
+(keymap-global-set "C-c o b"    #'crux-smart-open-line)   ;  below
+(keymap-global-set "C-c o p"    #'ffap)        ; find file at point
 (keymap-global-set "C-c o r"    #'crux-reopen-as-root)
 (keymap-global-set "C-c o w"    #'crux-open-with)         ; xdg-open
 (keymap-global-set "M-r"        #'crux-recentf-find-file) ; recentf-list void
@@ -274,40 +236,43 @@
 (with-eval-after-load 'org
   (keymap-set org-mode-map "M-s-<up>"   #'org-move-subtree-up)
   (keymap-set org-mode-map "M-s-<down>" #'org-move-subtree-down)
-  (keymap-set org-mode-map "C-j"        #'avy-goto-char-timer) ; default = org-return-and-maybe-indent or electric-newline-and maybe-indent
-  (keymap-set org-mode-map "C-'"        #'sjy2/wrap-interactive)) ; was embrace-commander ; default = org-cycle-agenda-files
+  (keymap-set org-mode-map "C-j"        #'avy-goto-char-timer)) ; default = org-return-and-maybe-indent or electric-newline-and maybe-indent
 
 ;; C-w -- Steve Yegge's classic backwards-kill-word rewritten
+;; (define-advice kill-region (:around (orig-fun beg end &rest args) sjy2/unix-werase)
+;;   "If called interactively with no active region, delete one word backward.
+;; Otherwise call `kill-region` as usual."
+;;   (if (or (use-region-p)
+;;           (not (called-interactively-p 'interactive)))
+;;       ;; Region active OR called non-interactively --> normal kill-region
+;;       (apply orig-fun beg end args)
+;;     ;; Called interactively with no region --> behave like Unix werase
+;;     (let ((p (point))
+;;           (q (save-excursion (backward-word 1) (point))))
+;;       (kill-new (buffer-substring-no-properties q p))
+;;       (delete-region q p))))
+
 (define-advice kill-region (:around (orig-fun beg end &rest args) sjy2/unix-werase)
-  "If called interactively with no active region, delete one word backward.
-Otherwise call `kill-region` as usual."
-  (if (or (use-region-p)
-          (not (called-interactively-p 'interactive)))  ; <-- KEY FIX
-      ;; Region active OR called non-interactively --> normal kill-region
-      (apply orig-fun beg end args)
-    ;; Called interactively with no region --> behave like Unix werase
-    (let ((p (point))
-          (q (save-excursion (backward-word 1) (point))))
-      (kill-new (buffer-substring-no-properties q p))
-      (delete-region q p))))
+  "If called interactively with no active region, delete one word backward."
+  (cond
+   ((not (called-interactively-p 'interactive))
+    (apply orig-fun beg end args))
+   ((and beg end (use-region-p))
+    (apply orig-fun beg end args))
+   (t
+    (let* ((p (point))
+           (q (save-excursion (backward-word 1) (point))))
+      (unless (minibufferp)
+        (kill-new (buffer-substring-no-properties q p)))
+      (delete-region q p)))))
 
-
-;; M-w = copy line when no region (like VS Code C-c) — perfect 2025 version
-(defun sjy2/kill-ring-save-dwim (&optional arg)
-"Copy region if active, otherwise copy current line.
-With prefix ARG, copy the line with trailing newline (like `kill-line')."
-(interactive "P")
-(if (use-region-p)
-    (kill-ring-save (region-beginning) (region-end))
-  (let ((beg (line-beginning-position))
-        (end (line-end-position)))
-    (when arg
-      (setq end (min (point-max) (1+ end))))  ; include newline
-    (kill-new (buffer-substring-no-properties beg end))
-    (message "Copied line%s" (if arg " (with newline)" "")))))
-
-;; Replace M-w globally with the DWIM version
-(keymap-global-set "M-w" #'sjy2/kill-ring-save-dwim)
+;; Explicit C-w werase in minibuffer
+(define-key minibuffer-local-map (kbd "C-w")
+	    (lambda ()
+	      (interactive)
+	      (let* ((p (point))
+		     (q (save-excursion (backward-word 1) (point))))
+		(delete-region q p))))
 
 ;;; ———————————————————————— 05 Modeline, Appearance, Themes, Fonts ————————————————————————
 (set-face-attribute 'default nil :font "Iosevka" :height 140) ; Set default face font and height
@@ -627,6 +592,17 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;; https://github.com/renard/dired-toggle-sudo
 (use-package dired-toggle-sudo
   :ensure t)
+
+(define-key dired-mode-map (kbd "C-c C-s") 'dired-toggle-sudo)
+
+(eval-after-load 'tramp
+  '(progn
+     ;; Allow to use: /sudo:user@host:/path/to/file
+     (add-to-list 'tramp-default-proxies-alist
+		  '(".*" "\\`.+\\'" "/ssh:%h:"))))
+
+(with-eval-after-load 'dired
+  (keymap-set dired-mode-map "r" #'sjy2/dired-rename-current-file))
 
 (use-package dired
   :ensure nil
@@ -1538,24 +1514,6 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   ("M-m t" . powerthesaurus-lookup-dwim) ;; this does it all anyway
   :config)
 
-
-(use-package wiktionary-bro
-  :commands (wiktionary-bro-dwim)
-  :bind
-  ("M-m w" . wiktionary-bro-dwim)
-  :config
-  (setq wiktionary-bro-language "en")
-  ;; To use your system browser instead:
-  (defun wiktionary-use-system-browser-h ()
-    "Use system browser for external links in wiktionary-bro."
-    (setq-local browse-url-browser-function #'browse-url-default-browser))
-  (add-hook 'wiktionary-bro-mode-hook #'wiktionary-use-system-browser-h))
-
-(defun sjy2/lookup-wiktionary (word)
-  "Lookup the WORD at point in Wiktionary."
-  (interactive (list (thing-at-point 'word)))
-  (browse-url (format "https://en.wiktionary.org/wiki/%s" word)))
-
 (use-package jinx
   :ensure t
   :hook (text-mode . jinx-mode)
@@ -1893,6 +1851,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
         '("\\*TeX Help\\*"
           "\\*jj-log:.*\\*"
           "\\*Emacs log\\*"
+	  "\\*Compile.*\\*"
 	  "\\*Flycheck errors\\*"
           help-mode
           helpful-mode
@@ -1921,37 +1880,20 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
                      map))))))
 
 ;; Certain buffers appear on right side
-(add-to-list 'display-buffer-alist
-             '("\\*\\(Help\\|helpful\\).*\\*"
-               (display-buffer-in-side-window)
-               (side . right)
-               (slot . 0)
-               (window-width . 80)))
-
 (setq display-buffer-alist
-      (append
-       '(;; Catch help and helpful buffers
-         ("\\*\\(Help\\|helpful\\).*\\*"
-          (display-buffer-in-side-window)
-          (side . right)
-          (slot . 0)
-          (window-width . 80))
-         ;; Catch log buffers
-         ("\\*\\(jj-log:.*\\|Emacs log\\)\\*"
-          (display-buffer-in-side-window)
-          (side . right)
-          (slot . 1) ; Using slot 1 keeps it distinct if a help buffer is also open
-          (window-width . 80))
-	 ;; Catch flycheck buffers
-         ("\\*Flycheck.*\\*"
-          (display-buffer-in-side-window)
-          (side . right)
-          (slot . 2)   ;; separate lane = cleaner layout
-          (window-width . 80))
-	 )
-       display-buffer-alist))
+      '(("\\*\\(Help\\|helpful\\).*\\*"
+         (display-buffer-in-side-window)
+         (side . right) (slot . 0) (window-width . 80))
 
-;;; ———————————————————————— 90 sjy2 custom code – 2025 cleaned  ————————————————————————
+        ("\\*\\(jj-log:.*\\|Emacs log\\|Compile-Log\\)\\*"
+         (display-buffer-in-side-window)
+         (side . right) (slot . 1) (window-width . 80))
+
+        ("\\*Flycheck.*\\*"
+         (display-buffer-in-side-window)
+         (side . right) (slot . 2) (window-width . 80))))
+
+;;; ———————————————————————— 90 Custom code not in sjy2-custom-code.el  ————————————————————————
 
 ;; Prot’s keyboard-quit-dwim – kept (still the gold standard)
 (defun prot/keyboard-quit-dwim ()
@@ -1962,20 +1904,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
         ((> (minibuffer-depth) 0) (abort-recursive-edit))
         (t (keyboard-quit))))
 
-;; on emacs restart
-(featurep 'sjy2/md-agenda-mode)      ;; nil
-(featurep 'sjy2-md-agenda-mode)      ;; nil
-(locate-library "sjy2-md-agenda")    ;; "/home/salopst/.config/emacs/sjy2-lisp/sjy2-md-agenda.el"
-(featurep 'sjy2/md-agenda-new-entry) ;; nil
-(fboundp 'sjy2-md-agenda-mode)       ;; t
-(fboundp 'sjy2/md-agenda-mode)       ;; nil
-
-
-
 
 (use-package sjy2-md-agenda
   :load-path "sjy2-lisp"
-  :demand t
   :hook (markdown-mode . sjy2-md-agenda-mode)
   :init
   (define-prefix-command 'sjy2-md-agenda-prefix)
@@ -1995,4 +1926,3 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 (provide 'init.el)
 ;;; init.el ends here
-(put 'dired-find-alternate-file 'disabled nil)
