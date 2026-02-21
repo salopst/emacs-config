@@ -10,6 +10,7 @@
        (mode-io-correlate
 	" --forward-search-file %b --forward-search-line %n --inverse-search \"emacsclient --no-wait +%2:%3 %1\""))
       "sioyek")))
+ '(org-fold-catch-invisible-edits 'smart nil nil "Customized with use-package org")
  '(package-selected-packages
    '(ace-window aggressive-indent all-the-icons-completion anzu auctex
 		beacon biblio bibtex-actions bibtex-completion citar
@@ -17,18 +18,19 @@
 		csv-mode deadgrep denote diff-hl dired-filter
 		dired-git-info dired-subtree dired-toggle-sudo
 		doom-modeline drag-stuff embark-consult expand-region
-		fd-dired fold-this goto-last-change gptel helpful
-		iedit jinx jj-mode keycast major-mode-icons majutsu
-		marginalia markdown-mode mcp minions mixed-pitch
-		modus-themes multiple-cursors nerd-icons-dired nov
-		olivetti orderless org-appear org-auto-tangle
-		org-download org-modern org-modern-indent
-		org-side-tree org-sticky-header-mode outline-magic
-		popper powerthesaurus pulsar puni rainbow-delimiters
-		rainbow-mode rg simple-modeline smartparens tempel
-		treesit-auto typst-ts-mode ultra-scroll undo-fu unfill
-		vc-jj vertico visual-regexp-steroids vlf vterm-toggle
-		vundo wiktionary-bro yaml-mode zzz-to-char))
+		fd-dired flycheck fold-this goto-last-change gptel
+		helpful iedit jinx jj-mode keycast major-mode-icons
+		majutsu marginalia markdown-mode mcp minions
+		mixed-pitch modus-themes multiple-cursors
+		nerd-icons-dired nov olivetti orderless org-appear
+		org-auto-tangle org-download org-modern
+		org-modern-indent org-side-tree org-sticky-header-mode
+		outline-magic popper powerthesaurus pulsar puni
+		rainbow-delimiters rainbow-mode rg simple-modeline
+		smartparens tempel treesit-auto typst-ts-mode
+		ultra-scroll undo-fu unfill vc-jj vertico
+		visual-regexp-steroids vlf vterm-toggle vundo
+		wiktionary-bro yaml-mode zzz-to-char))
  '(package-vc-selected-packages
    '((bibtex-actions :url "https://github.com/mbosley/bibtex-actions")
      (typst-ts-mode :url

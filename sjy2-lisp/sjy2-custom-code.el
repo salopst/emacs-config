@@ -1,9 +1,17 @@
-;;; sjy2-custom-code.el --- sjy2 custom code -*- lexical-binding: t; -*-
-(require 'tex nil t)
+;;; sjy2-custom-code.el --- sjy2 custom code -*- lexical-binding: t; byte-compile-warnings: (not free-vars); -*-
 
-;;; ------------------------------------------------------------------
-;;; Compile-time Declarations to Silence Native-Comp Warnings
-;;; ------------------------------------------------------------------
+;;; Commentary:
+;; my bullshit additions.
+;; TODO: Simplify, eliminate.
+
+
+;;; Code:
+
+(require 'tex nil t)
+(require 'popper)
+
+
+;;; Compile-time declarations to pacify native-comp and flycheck
 
 ;; dired
 (declare-function dired-get-filename "dired")
@@ -34,11 +42,11 @@
 ;;; ------------------------------------------------------------------
 
 (defvar sjy2/prefix-map (make-sparse-keymap)
-  "Personal keymap under M-m prefix.")
+  "Personal keymap under `M-m' prefix.")
 (define-key global-map (kbd "M-m") sjy2/prefix-map)
 
 (defvar sjy2/search-map (make-sparse-keymap)
-  "Search-related commands under M-m s.")
+  "Search-related commands under `M-m s'.")
 (define-key sjy2/prefix-map (kbd "s") sjy2/search-map)
 
 (defmacro sjy2/bind (key command &optional map)
@@ -122,7 +130,7 @@
 ;;; ------------------------------------------------------------------
 
 (defun sjy2/whitespace-clean-in-region (beg end)
-  "Clean up whitespace in region: remove leading/trailing, compress multiple spaces."
+  "Clean up whitespace in region (BEG END).  Remove leading/trailing, compress multiple spaces."
   (interactive "r")
   (save-excursion
     (save-restriction
@@ -237,7 +245,7 @@ Works with both regular windows and popper popups."
     (delete-other-windows))))
 
 (defun sjy2/wank ()
-  "Rude 'foo'"
+  "Rude `foo'."
   (interactive)
   (message "WANKING WANKER!!!!!"))
 
@@ -257,22 +265,44 @@ Works with both regular windows and popper popups."
       (user-error "No region or symbol"))))
 
 ;; Wrapper commands
-(defun sjy2/wrap-parens () (interactive) (sjy2/wrap-with "(" ")"))
-(defun sjy2/wrap-brackets () (interactive) (sjy2/wrap-with "[" "]"))
-(defun sjy2/wrap-braces () (interactive) (sjy2/wrap-with "{" "}"))
-(defun sjy2/wrap-quotes () (interactive) (sjy2/wrap-with "\""))
-(defun sjy2/wrap-slashes () (interactive) (sjy2/wrap-with "/"))
-(defun sjy2/wrap-asterisks () (interactive) (sjy2/wrap-with "*"))
-(defun sjy2/wrap-tildes () (interactive) (sjy2/wrap-with "~"))
+(defun sjy2/wrap-parens ()
+  "Wrap region or word at point in parentheses."
+  (interactive) (sjy2/wrap-with "(" ")"))
+
+(defun sjy2/wrap-brackets ()
+  "Wrap region or word at point in square brackets."
+  (interactive) (sjy2/wrap-with "[" "]"))
+
+(defun sjy2/wrap-braces ()
+  "Wrap region or word at point in curly braces."
+  (interactive) (sjy2/wrap-with "{" "}"))
+
+(defun sjy2/wrap-quotes ()
+  "Wrap region or word at point in double quotes."
+  (interactive) (sjy2/wrap-with "\""))
+
+(defun sjy2/wrap-slashes ()
+  "Wrap region or word at point in forward slashes."
+  (interactive) (sjy2/wrap-with "/"))
+
+(defun sjy2/wrap-asterisks ()
+  "Wrap region or word at point in asterisks (Org/Markdown bold)."
+  (interactive) (sjy2/wrap-with "*"))
+
+(defun sjy2/wrap-tildes ()
+  "Wrap region or word at point in tildes (Org code markup)."
+  (interactive) (sjy2/wrap-with "~"))
 
 (defun sjy2/wrap-interactive ()
+  "Wrap region or word at point with user-supplied delimiters.
+Prompts for left and right strings, defaulting right to left if omitted."
   (interactive)
-  (let* ((left (read-string "Left: "))
+  (let* ((left  (read-string "Left: "))
          (right (read-string "Right: " nil nil left)))
     (sjy2/wrap-with left right)))
 
-
 (defun sjy2/unwrap ()
+  "Remove the enclosing delimiter pair around the sexp at point."
   (interactive)
   (let ((bounds (bounds-of-thing-at-point 'sexp)))
     (if bounds
@@ -306,7 +336,7 @@ Works with both regular windows and popper popups."
 Cycle order:
   lower → UPPER → Title Case → Sentence case → sPoNgE cAsE → lower.
 
-If a region is active, operate on the region.  
+If a region is active, operate on the region.
 Otherwise operate on the word at point.
 
 The cycling state persists only if this command is repeated
@@ -385,7 +415,7 @@ successively; any other intervening command resets the cycle."
 
 
 (defun sjy2/copy-buffer-name ()
-  "Copy current buffer name to clipboard and kill ring."
+  "Copy current buffer name to clipboard and killring."
   (interactive)
   (if-let ((name (buffer-name)))
       (progn
@@ -394,7 +424,7 @@ successively; any other intervening command resets the cycle."
     (user-error "No buffer name available")))
 
 (defun sjy2/copy-file-name ()
-  "Copy current file path to clipboard and kill ring.
+  "Copy current file path to clipboard and killring.
 In Dired, copy the directory path instead."
   (interactive)
   (let ((path (if (derived-mode-p 'dired-mode)
@@ -462,7 +492,7 @@ Provides completion, stays in the same directory, and refreshes Dired cleanly."
 
 (defun sjy2/insert-timestamp (&optional arg)
   "Insert a timestamp at point.
-With prefix ARG (C-u), use ISO8601 format (YYYY-MM-DD HH:MM:SS).
+With prefix ARG (`C-u'), use ISO8601 format (YYYY-MM-DD HH:MM:SS).
 Without ARG, insert compact form: (YYYYMMDD-HHMMSS)."
   (interactive "P")
   (let ((fmt (if arg "%Y-%m-%d %H:%M:%S" "(%Y%m%d-%H%M%S)")))
@@ -502,6 +532,7 @@ Searches for the literal string in BEG..END within `default-directory`."
 
 
 (defun sjy2/org-export-pdf-and-open ()
+  "Export FILE to PDF and open."
   (interactive)
   (unless (derived-mode-p 'org-mode)
     (user-error "Not in Org mode"))
@@ -531,8 +562,7 @@ Matching is performed on the full path; a match means the file is skipped."
             sjy2/clean-ignore-dirs))
 
 (defun sjy2/collect-elc-files (&optional root)
-  "Return a list of .elc files under ROOT (defaults to `user-emacs-directory`),
-excluding paths that match `sjy2/clean-ignore-dirs`."
+  "Return a list of .elc files under ROOT (defaults to `user-emacs-directory`), excluding paths that match `sjy2/clean-ignore-dirs`."
   (let ((root (or root user-emacs-directory))
         (files nil))
     (dolist (f (directory-files-recursively root "\\.elc\\'"))
@@ -567,7 +597,7 @@ Use `sjy2/clean-eln-files` to remove those intentionally."
       count)))
 
 (defun sjy2/recompile-init (&optional force)
-  "Byte-recompile Emacs lisp files under `user-emacs-directory`.
+  "Byte-recompile Emacs Lisp files under `user-emacs-directory`.
 If FORCE (interactive prefix) is non-nil, recompile regardless of timestamps.
 Opens the *Compile-Log* buffer when finished."
   (interactive "P")
@@ -591,7 +621,7 @@ This is a convenience wrapper that confirms before deletion."
 ;;; === optional: native-comp (eln) cleanup ===
 
 (defun sjy2/collect-eln-files (&optional root)
-  "Collect .eln files under ROOT. Defaults to `user-emacs-directory`."
+  "Collect .eln files under ROOT.  Defaults to `user-emacs-directory`."
   (let ((files nil)
         (root (or root user-emacs-directory)))
     (dolist (f (directory-files-recursively root "\\.eln\\'"))
@@ -645,24 +675,24 @@ Silently continues on error, and reports a summary at the end."
 ;;; ------------------------------------------------------------------
 
 (defun sjy2/enlarge-window-horizontally (&optional repeat)
-  "Enlarge window horizontally by 8% of the frame width."
+  "Enlarge window horizontally by 8% of the frame width.  Optionally REPEAT."
   (interactive "p")
   (enlarge-window-horizontally (* (or repeat 1)
                                   (floor (frame-width) 20))))
 
 (defun sjy2/enlarge-window-vertically (&optional repeat)
-  "Enlarge window horizontally by 8% of the frame height."
+  "Enlarge window horizontally by 8% of the frame height.  Optionally REPEAT."
   (interactive "p")
   (enlarge-window (* (or repeat 1)
                      (floor (frame-height) 20))))
 
 (defun sjy2/shrink-window-horizontally (&optional repeat)
-  "Enlarge window horizontally by 8% of the frame width."
+  "Enlarge window horizontally by 8% of the frame width.  Optionally REPEAT."
   (interactive "p")
   (shrink-window-horizontally (* (or repeat 1)
                                  (floor (frame-width) 20))))
 (defun sjy2/shrink-window-vertically (&optional repeat)
-  "Enlarge window horizontally by 8% of the frame height."
+  "Enlarge window horizontally by 8% of the frame height.  Optionally REPEAT."
   (interactive "p")
   (shrink-window (* (or repeat 1)
                     (floor (frame-height) 20))))

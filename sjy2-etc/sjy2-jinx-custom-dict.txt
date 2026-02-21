@@ -7,11 +7,13 @@
 Maranatha              ; Aramaic "Come, O Lord! μαράνα θά" (1 Cor 16:22)
 
 ;;; WTF not in aspell??
-transactional
+curation
 discoverable
 discoverability
 scalable
 scalability
+transactional
+tribology              ; the study of friction, wear, lubrication; of interacting surfaces.
 
 ;;; THEOLOGY
 anamnesis              ; liturgical remembering

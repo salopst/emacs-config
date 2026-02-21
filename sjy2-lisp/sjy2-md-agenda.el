@@ -125,6 +125,47 @@ Each entry is (LEVEL . PLIST) where PLIST contains :foreground, :weight, :height
     (insert (format "# %s %s %s %s%s %s -- "
                     status date week day time-string tag-string))))
 
+(defun sjy2/md-agenda-format-iso-date-at-point ()
+  "Replace ISO date at point (YYYY-MM-DD) with date + week + weekday.
+Example: 2026-02-19 → 2026-02-19 w08 Thu"
+  (interactive)
+  (let ((re "\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)"))
+    (save-excursion
+      (beginning-of-line)
+      (if (re-search-forward re (line-end-position) t)
+          (let* ((date-str (match-string 0))
+                 (year     (string-to-number (match-string 1)))
+                 (month    (string-to-number (match-string 2)))
+                 (day      (string-to-number (match-string 3)))
+                 (time     (encode-time 0 0 12 day month year))
+                 (result   (format "%s w%02d %s" date-str
+                                   (string-to-number (format-time-string "%V" time))
+                                   (format-time-string "%a" time))))
+            (replace-match result))
+        (message "No ISO date found on this line")))))
+
+
+(defun sjy2/md-agenda-convert-iso-date (date-str)
+  "Insert a formatted date string at point.
+Prompt for a date in YYYY-MM-DD format and insert it as: YYYY-MM-DD wWW Day.
+Press RET to accept today's date."
+  (interactive
+   (let ((today (format-time-string "%Y-%m-%d")))
+     (list (read-string (format "Date (YYYY-MM-DD) [%s]: " today)
+                        nil nil today))))
+  (if (string-match "\\([0-9]\\{4\\}\\)-\\([0-9]\\{2\\}\\)-\\([0-9]\\{2\\}\\)" date-str)
+      (let* ((year   (string-to-number (match-string 1 date-str)))
+             (month  (string-to-number (match-string 2 date-str)))
+             (day    (string-to-number (match-string 3 date-str)))
+             (time   (encode-time 0 0 12 day month year))
+             (result (format "%s w%02d %s" date-str
+                             (string-to-number (format-time-string "%V" time))
+                             (format-time-string "%a" time))))
+        (insert result))
+    (message "Invalid date format, expected YYYY-MM-DD")))
+
+
+
 (define-minor-mode sjy2-md-agenda-mode
   "Minor mode for sjy2 markdown agenda highlighting."
   :lighter " sjy2-agenda"

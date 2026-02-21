@@ -1,27 +1,46 @@
-;;; ~/.config/emacs-new/init.el --- Dec 07 2025 -*- lexical-binding: t -*-
+;;; init.el --- Main Emacs configuration -*- lexical-binding: t; byte-compile-warnings: (not free-vars); -*-
 
 ;;; Commentary:
 ;; running main config — most salvaged from my old monster
-;; mediated by grok 3.x
-
-
-;;; SOME KEYBINDS
-;; C-M-f → forward-sexp
-;; C-M-b → backward-sexp
-;; C-M-k → kill-sexp
-;; C-M-t → transpose-sexps
-;; C-M-<SPC>  →  mark-sexp -- repeatedly extends the selection to larger syntactic units.
-
-;; C-c |  → org-table-convert-region --  if we have 3 columns but the spacing is messy, FORCE it C-u 3 C-c |.
-
-;;; my NEW keybinds:
-;; C-c n f  → sjy2/consult-denote-search      (find any note)
-;; C-c n g  → sjy2/consult-denote-grep        (grep note contents)
-;; C-c n r  → sjy2/denote-quick-reference     (quick ref lookup)
-;; C-c n k  → sjy2/denote-keyword-filter      (filter by keyword)
-;; C-c w w  → sjy2/writing-session            (focused writing)
+;; mediated by various LLMs
 
 ;;; Code:
+
+;;; Compiler declarations for init.el to silence Flycheck / byte-compile warnings
+
+;; Keybinding functions
+(declare-function sjy2/insert-timestamp "sjy2-custom-code")
+(declare-function sjy2/rgrep-selected "sjy2-custom-code")
+(declare-function sjy2/eval-and-copy "sjy2-custom-code")
+(declare-function sjy2/toggle-transparency "sjy2-custom-code")
+(declare-function sjy2/markdown-table-to-org "sjy2-custom-code")
+(declare-function sjy2/toggle-maximize-window "sjy2-custom-code")
+(declare-function sjy2/window-split-toggle "sjy2-custom-code")
+(declare-function sjy2/toggle-window-swap "sjy2-custom-code")
+(declare-function sjy2/cycle-windows-and-frames "sjy2-custom-code")
+(declare-function sjy2/copy-buffer-name "sjy2-custom-code")
+(declare-function sjy2/copy-file-name "sjy2-custom-code")
+(declare-function sjy2/save-with-timestamp-prefix "sjy2-custom-code")
+(declare-function sjy2/dired-rename-current-file "sjy2-custom-code")
+(declare-function sjy2/org-export-pdf-and-open "sjy2-custom-code")
+(declare-function sjy2/recompile-init "sjy2-custom-code")
+(declare-function sjy2/clean-and-recompile "sjy2-custom-code")
+(declare-function sjy2/update-vc-packages "sjy2-custom-code")
+(declare-function sjy2/wrap-parens "sjy2-custom-code")
+(declare-function sjy2/wrap-brackets "sjy2-custom-code")
+(declare-function sjy2/wrap-braces "sjy2-custom-code")
+(declare-function sjy2/wrap-quotes "sjy2-custom-code")
+(declare-function sjy2/wrap-slashes "sjy2-custom-code")
+(declare-function sjy2/wrap-asterisks "sjy2-custom-code")
+(declare-function sjy2/wrap-tildes "sjy2-custom-code")
+(declare-function sjy2/wrap-interactive "sjy2-custom-code")
+(declare-function sjy2/unwrap "sjy2-custom-code")
+(declare-function sjy2/cycle-case-region-or-word "sjy2-custom-code")
+(declare-function sjy2/enlarge-window-horizontally "sjy2-custom-code")
+(declare-function sjy2/enlarge-window-vertically "sjy2-custom-code")
+(declare-function sjy2/shrink-window-horizontally "sjy2-custom-code")
+(declare-function sjy2/shrink-window-vertically "sjy2-custom-code")
+
 
 ;;; ———————————————————————— 00 Directory setup & Local Lisp ————————————————————————
 (defconst sjy2-cache-dir      (expand-file-name "sjy2-cache/"      user-emacs-directory))
@@ -73,7 +92,7 @@
 ;;; AI, LLM, ChatGPT etc.
 (use-package sjy2-gptel
   :load-path (lambda () (list sjy2-lisp-dir))
-  :defer t 
+  :defer t
   :config
   (message "sjy2-gptel loaded"))
 
@@ -83,8 +102,6 @@
   :demand t
   :config
   (message "sjy2-dired-open-with loaded"))
-
-(require 'eros)
 
 ;;; ———————————————————————— 02 Core state files ————————————————————————
 (setq save-place-file              (expand-file-name "save-place"         sjy2-cache-dir))
@@ -124,19 +141,16 @@
 (setq custom-safe-themes          t)
 (setq custom-safe-variables       t)
 (setq desktop-load-locked-desktop t)  ; ignore lock from previous invocation
-
+(setq pixel-scroll-precision-interpolate-page t)
 
 (add-to-list 'default-frame-alist '(fullscreen . maximized))
-
+(pixel-scroll-precision-mode 1)
 (tool-bar-mode  -1)
 (menu-bar-mode  -1)
 (tooltip-mode   -1)
 (scroll-bar-mode 1)
 (tab-bar-mode   -1)                              ; we don’t use Emacs tabs
 (fringe-mode    15)
-(pixel-scroll-precision-mode 1)
-(setq pixel-scroll-precision-interpolate-page t)
-
 (delete-selection-mode 1)
 (repeat-mode 1)
 (save-place-mode 1)
@@ -205,9 +219,11 @@
 (keymap-global-set "C-c C-b"   #'sjy2/force-box-cursor)
 
 (add-hook 'post-command-hook                #'sjy2/force-box-cursor)
-(add-hook 'focus-in-hook                    #'sjy2/force-box-cursor)
+(add-function :after after-focus-change-function
+              #'sjy2/force-box-cursor)
 (add-hook 'buffer-list-update-hook          #'sjy2/force-box-cursor)
 (add-hook 'window-configuration-change-hook #'sjy2/force-box-cursor)
+
 (with-eval-after-load 'org
   (add-hook 'org-mode-hook                  #'sjy2/force-box-cursor 99)
   (define-key org-mode-map (kbd "C-,")      #'pop-to-mark-command))
@@ -227,10 +243,10 @@
 (keymap-global-set "C-s"        #'isearch-forward-regexp)
 (keymap-global-set "C-r"        #'isearch-backward-regexp) ; M-e in isearch -- allows proper editing
 (keymap-global-set "C-M-r"      #'query-replace-regexp)    ; C-M-% is the finger crunching default
-(keymap-global-set "C-x f"      #'find-file)               ; default set-fill-column 
+(keymap-global-set "C-x f"      #'find-file)               ; default set-fill-column
 (keymap-global-set "C-c t f"    #'auto-fill-mode)
 (keymap-global-set "C-c t l"    #'toggle-truncate-lines)
-(keymap-global-set "C-c t w"    #'white-space-mode)
+(keymap-global-set "C-c t w"    #'whitespace-mode)
 (keymap-global-set "C-/"        #'comment-line) ; C-/ is undo by default. C-x C-; al comm. line
 (keymap-global-set "C-c c"      #'org-capture)
 (keymap-global-set "C-c a"      #'org-agenda)
@@ -248,9 +264,9 @@
 (keymap-global-set "C-c o a"    #'crux-smart-open-line-above)
 (keymap-global-set "C-c o b"    #'crux-smart-open-line)   ; open line below
 (keymap-global-set "C-c o p"    #'ffap)                   ; find file at point
-(keymap-global-set "C-c o r"    #'crux-reopen-as-root) 
+(keymap-global-set "C-c o r"    #'crux-reopen-as-root)
 (keymap-global-set "C-c o w"    #'crux-open-with)         ; xdg-open
-(keymap-global-set "M-r"        #'crux-recentf-find-file) ; recentf-list void 
+(keymap-global-set "M-r"        #'crux-recentf-find-file) ; recentf-list void
 
 (global-set-key [remap move-beginning-of-line] #'crux-move-beginning-of-line)
 (global-set-key [remap kill-whole-line]        #'crux-kill-whole-line)
@@ -321,7 +337,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :hook (after-init . minions-mode)
   :custom
   (setopt minions-mode-line-lighter " 🛠️ ")
-  (setopt minions-direct '(eglot-mode flymake-mode))
+  (setopt minions-direct '(eglot-mode flycheck-mode))
   (setopt minions-prominent-modes '(projectile-mode eglot-mode)))
 
 (use-package keycast
@@ -587,7 +603,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (setq mixed-pitch-face 'variable-pitch))
 
 
-;; Variable-pitch in prose modes 
+;; Variable-pitch in prose modes
 (dolist (hook '(text-mode-hook org-mode-hook markdown-mode-hook latex-mode-hook))
   (add-hook hook #'variable-pitch-mode))
 
@@ -597,9 +613,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
  '(variable-pitch         ((t (:family "Iosevka"))))
  '(font-lock-comment-face ((t (:slant italic))))
  '(font-lock-comment-face ((t (:foreground "#95A99F" :slant italic))))
- '(term                   ((t (:background "#002244" 
+ '(term                   ((t (:background "#002244"
 					   :foreground "#95A99F" :weight bold))))
- '(keycast-key            ((t (:background "#6D7587" 
+ '(keycast-key            ((t (:background "#6D7587"
 					   :foreground "#E4C869" :weight bold)))))
 
 ;;; ———————————————————————— 06 Dired ————————————————————————
@@ -608,7 +624,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :ensure t
   :hook (dired-mode . dired-filter-mode))
 
-;; https://github.com/renard/dired-toggle-sudo 
+;; https://github.com/renard/dired-toggle-sudo
 (use-package dired-toggle-sudo
   :ensure t)
 
@@ -705,6 +721,10 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
         ("M-S-<up>"  . #'mc/mark-previous-like-this)
         ("M-S-<down>". #'mc/mark-next-like-this)))
 
+;; Modern flymake
+(use-package flycheck
+  :ensure t
+  :init (global-flycheck-mode))
 
 ;; Tree-sitter
 (use-package treesit
@@ -739,29 +759,65 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
           (yaml "https://github.com/tree-sitter/tree-sitter-yaml")
           (delete 'markdown treesit-auto-lang-recipe-alist)
           (delete 'markdown-inline treesit-auto-lang-recipe-alist)))
-	:config
+  :config
   (setq treesit-extra-load-path '("~/.config/emacs/tree-sitter/"))
-	(global-treesit-auto-mode))
-
+  (global-treesit-auto-mode))
 
 ;; Eglot: Only enable for languages where LSP servers are installed
+;; (use-package eglot
+;;   :ensure t
+;;   :hook
+;;   ((python-mode    . eglot-ensure)
+;;    (js-mode        . eglot-ensure)
+;;    (rust-mode      . eglot-ensure)
+;;    (text-mode      . eglot-ensure)
+;;    (markdown-mode  . eglot-ensure)
+;;    (org-mode       . eglot-ensure))
+;;   :custom
+;;   (eglot-autoshutdown t)
+;;   (eglot-sync-connect 0)
+;;   (eglot-workspace-configuration
+;;    '(:harper-ls (
+;; 		 :userDictPath "~/.config/emacs/sjy2-etc/harper-user-dict.txt"
+;; 		 :fileDictPath "~/.config/emacs/sjy2-etc/harper-file-dicts"
+;; 		 :linters (:SpellCheck t
+;; 				       :SentenceCapitalization :json-false))))
+;;   :config
+;;   (dolist (mode-server '((text-mode     . "harper-ls")
+;;                          (markdown-mode . "harper-ls")
+;;                          (org-mode      . "harper-ls")))
+;;     (add-to-list 'eglot-server-programs
+;;                  `(,(car mode-server) . (,(cdr mode-server) "--stdio")))))
+
 (use-package eglot
   :ensure t
+  :hook
+  ((python-mode    . eglot-ensure)
+   (js-mode        . eglot-ensure)
+   (rust-mode      . eglot-ensure)
+   (text-mode      . eglot-ensure)
+   (markdown-mode  . eglot-ensure)
+   (org-mode       . eglot-ensure))
+  :bind
+  (:map eglot-mode-map
+	("C-c e a" . eglot-code-actions)
+	("C-c e r" . eglot-rename)
+	("C-c e f" . eglot-format))
   :custom
-  (eglot-autoshutdown t)  ; Kill server when last buffer closes
-  (eglot-sync-connect 0)  ; Don't block on slow servers
+  (eglot-autoshutdown t)
+  (eglot-sync-connect 0)
+  (eglot-workspace-configuration
+   '(:harper-ls (:dialect "British"
+			  :userDictPath "~/.config/emacs/sjy2-etc/harper-user-dict.txt"
+			  :fileDictPath "~/.config/emacs/sjy2-etc/harper-file-dicts"
+			  :linters (:SpellCheck t
+						:SentenceCapitalization :json-false))))
   :config
-  ;; Only hook modes where you've installed LSP servers
-  (add-hook 'python-mode-hook #'eglot-ensure)        ; if pyright/pylsp installed
-  (add-hook 'js-mode-hook     #'eglot-ensure)        ; if typescript-language-server
-  (add-hook 'rust-mode-hook   #'eglot-ensure)        ; if rust-analyzer
-  
-  ;; Suppress warnings for missing servers
-  (defun sjy2-eglot-ensure-safe ()
-    "Start Eglot only if LSP server is available."
-    (when (and (eglot--lookup-mode major-mode)
-               (eglot--guess-contact))
-      (eglot-ensure))))
+  (dolist (mode-server '((text-mode     . "harper-ls")
+                         (markdown-mode . "harper-ls")
+                         (org-mode      . "harper-ls")))
+    (add-to-list 'eglot-server-programs
+                 `(,(car mode-server) . (,(cdr mode-server) "--stdio")))))
 
 ;; THE git porcelain
 (use-package magit)
@@ -775,11 +831,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :bind ("C-x j" . sjy2/jj-dwim)
   :config
   (setq vc-command-messages t)
-  (setq jj-executable "~/.cargo/bin/jj")  ; Set the binary path if not in exec-path
-  ;; (with-eval-after-load 'popper
-  ;;   (add-to-list 'popper-reference-buffers "\\*jj-log:.*\\*")
-  ;;)
-  )
+  (setq jj-executable "~/.cargo/bin/jj"))
 
 ;; integrate with Emacs' built-in vc. C-x v l (log) etc.
 (use-package vc-jj
@@ -794,7 +846,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;;   :vc (:url "https://github.com/0WD0/majutsu"))
 
 (defun sjy2/jj-dwim ()
-  "Jump to jj-log or vc-dir depending on preference."
+  "Jump to `'jj-log' or `'vc-dir' depending on preference."
   (interactive)
   (if (fboundp 'jj-log)
       (jj-log)
@@ -809,16 +861,15 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (defvar revert-buffer-in-progress nil))
   :config
   (diff-hl-flydiff-mode 1)
-  (unless (display-graphic-p) 
+  (unless (display-graphic-p)
     (diff-hl-margin-mode 1)))
-
 
 ;; Run Emacs Lisp functions asynchronously in separate Emacs processes
 (use-package async
   ;; :vc (:url "https://github.com/jwiegley/emacs-async.git")
   :config
   (dired-async-mode 1)
-  (async-bytecomp-package-mode 1)) 
+  (async-bytecomp-package-mode 1))
 
 ;; An Emacs package to move point through buffer-undo-list positions.
 (use-package goto-last-change
@@ -830,7 +881,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   ;; :vc (:url "https://github.com/emacsorphanage/anzu" :rev :newest)
   :bind (([remap query-replace]        . anzu-query-replace)
          ([remap query-replace-regexp] . anzu-query-replace-regexp))
-  :config 
+  :config
   (global-anzu-mode 1))
 
 ;; ;; native way of showing the counter without anzu package
@@ -847,7 +898,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   ;; :vc (:url "https://github.com/abo-abo/avy" :rev :newest)
   :config
   (setopt avy-timeout-seconds 0.20)
-  :bind (("C-c j"   . #'avy-goto-char-timer)     
+  :bind (("C-c j"   . #'avy-goto-char-timer)
          ("M-s-y"   . #'avy-copy-line)))
 
 ;; Expand region increases the selected region by semantic units.
@@ -934,7 +985,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (keymap-global-set "C-c i" #'iedit-mode))
 
 ;; A Collection of Ridiculously Useful eXtensions for Emacs.
-(use-package crux  
+(use-package crux
   ;; :vc (:url " https://github.com/bbatsov/crux" :rew :newest)
   )
 
@@ -969,7 +1020,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (define-key esc-map (kbd "C-M-r") #'vr/isearch-backward)
   (define-key esc-map (kbd "C-M-s") #'vr/isearch-forward))
 
-;; a minor mode that makes it possible to drag stuff (words, region, lines) around. 
+;; a minor mode that makes it possible to drag stuff (words, region, lines) around
 (use-package drag-stuff
   ;; :vc (:url "https://github.com/rejeep/drag-stuff.el")
   :ensure t
@@ -1026,7 +1077,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (colorful-only-strings t) ;'only-prog)
   (css-fontify-colors t)
   (colorful-color-face-attributes
-   '(:background :foreground))  
+   '(:background :foreground))
   :config
   (global-colorful-mode 1)
   (add-to-list 'global-colorful-modes 'helpful-mode))
@@ -1091,7 +1142,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   ;; :vc (:url "https://github.com/jdtsmith/ultra-scroll" :rev :newest)
   :config
   (setopt scroll-conservatively 101 ; important!
-          scroll-margin 0) 
+          scroll-margin 0)
   (ultra-scroll-mode 1))
 
 
@@ -1101,9 +1152,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 ;; Markdown
 (use-package markdown-mode
   ;; :vc (:url "https://jblevins.org/projects/markdown-mode/" :rev :newest)
-  :mode 
+  :mode
   (("README\\.md\\.markdown\\'" . gfm-mode)) ;; github flavour
-  :config 
+  :config
   (setopt markdown-command "pandoc")
   ;;(setopt markdown-command "multimarkdown"))
   (setopt markdown-fontify-code-blocks-natively t)
@@ -1115,7 +1166,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (add-to-list 'major-mode-remap-alist '(gfm-mode . gfm-ts-mode)))
 
 (use-package typst-ts-mode
-  :vc (:url "https://codeberg.org/meow_king/typst-ts-mode" 
+  :vc (:url "https://codeberg.org/meow_king/typst-ts-mode"
             :rev :newest)
   :mode "\\.typ\\'"
   :bind (:map typst-ts-mode-map
@@ -1173,7 +1224,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (orderless-component-separator #'orderless-escapable-split-on-space)
   (completion-styles '(orderless flex basic))
   (completion-category-defaults nil)
-  (completion-category-overrides 
+  (completion-category-overrides
    '((file (styles basic partial-completion))
      (eglot (styles basic)))))
 
@@ -1297,7 +1348,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
     (call-interactively #'consult-line-multi)))
 
 (defun sjy2/consult-ripgrep ()
-  "Select dir before ripgrep"
+  "Select dir before ripgrep."
   (interactive)
   (let ((current-prefix-arg '(4)))  ; Simulate C-u
     (call-interactively #'consult-ripgrep)))
@@ -1321,7 +1372,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
    ("M-g I"   . consult-imenu-multi)
    ;; M-s searching (project limited;)
    ("M-s o" . sjy2/consult-line-all-buffers) ; Search all open buffers
-   ("M-s O" . consult-line-multi)            ; Search poject buffers 
+   ("M-s O" . consult-line-multi)            ; Search poject buffers
    ("M-s g" . consult-grep)                  ; Grep project directory
    ("M-s G" . consult-git-grep)              ; Git grep (if in repo)
    ("M-s r" . sjy2/consult-ripgrep)          ; select a dir first (like C-u M-s r)
@@ -1375,7 +1426,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :custom (which-key-idle-delay 0.8)
   :config (which-key-mode 1))
 
-;; Corfu – the modern, non-intrusive in-buffer completion 
+;; Corfu – the modern, non-intrusive in-buffer completion
 (use-package corfu
   :ensure t
   :hook ((prog-mode) . corfu-mode) ; *scratch* is a prog mode?
@@ -1416,8 +1467,8 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 ;; Custom LaTeX to DOCX/RTF conversion function
 (defun sjy2/latex-to-docx (output-format)
-  "Convert LaTeX file to DOCX or RTF using Pandoc."
-  (interactive "sEnter output format (docx/rtf): ")
+  "Convert LaTeX file to OUTPUT-FORMAT (DOCX or RTF) using Pandoc."
+  (interactive "Enter OUTPUT-FORMAT (docx/rtf): ")
   (let ((output-file (concat (file-name-sans-extension buffer-file-name) "." output-format)))
     (shell-command (format "pandoc %s -o %s" (buffer-file-name) output-file))
     (message "Converted to %s format." output-file)))
@@ -1490,88 +1541,79 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
 
 (use-package wiktionary-bro
   :commands (wiktionary-bro-dwim)
-  :bind 
+  :bind
   ("M-m w" . wiktionary-bro-dwim)
   :config
-  (setq wiktionary-bro-language "en")) ; In wiktionary-bro buffer... C-c C-l to change  lang
-
-;; ;; To use your system browser instead:
-;; (defun wiktionary-use-system-browser-h ()
-;;   "Use system browser for external links in wiktionary-bro."
-;;   (setq-local browse-url-browser-function #'browse-url-default-browser))
-
-;; (add-hook 'wiktionary-bro-mode-hook #'wiktionary-use-system-browser-h)
-
+  (setq wiktionary-bro-language "en")
+  ;; To use your system browser instead:
+  (defun wiktionary-use-system-browser-h ()
+    "Use system browser for external links in wiktionary-bro."
+    (setq-local browse-url-browser-function #'browse-url-default-browser))
+  (add-hook 'wiktionary-bro-mode-hook #'wiktionary-use-system-browser-h))
 
 (defun sjy2/lookup-wiktionary (word)
+  "Lookup the WORD at point in Wiktionary."
   (interactive (list (thing-at-point 'word)))
   (browse-url (format "https://en.wiktionary.org/wiki/%s" word)))
-
-
-;; Jinx – on-demand spell-checking -- syncs with enchant
-;; enchant is a broker for spelling backends: aspell, hunspell, nuspell...
 
 (use-package jinx
   :ensure t
   :hook (text-mode . jinx-mode)
-  :bind (("M-$"    . jinx-correct)
-         ("C-M-$"  . jinx-languages)
-         ("C-c s"  . sjy2-spelling-map))
+  :bind (("M-$"   . jinx-correct)
+         ("C-M-$" . jinx-languages)
+         :map sjy2-spelling-map
+         ("c" . jinx-correct)
+         ("n" . jinx-next)
+         ("p" . jinx-previous)
+         ("l" . jinx-languages)
+         ("S" . sjy2/sync-jinx-dictionary))
   :init
   (define-prefix-command 'sjy2-spelling-map)
+  (keymap-set global-map "C-c s" 'sjy2-spelling-map)
   :config
-  ;; Use BCP 47 tags as per Enchant docs
   (setq jinx-languages "en_GB en_US es la el")
 
-  ;; 1. The Sync Function: Now targeting {lang}.dic as per documentation
   (defun sjy2/sync-jinx-dictionary ()
-    "Sync sjy2-jinx-custom-dict.txt to Enchant .dic files."
+    "Sync sjy2-jinx-custom-dict.txt to Enchant .dic files and harper user dict."
     (interactive)
     (let* ((source-file (expand-file-name "sjy2-jinx-custom-dict.txt" sjy2-etc-dir))
            (enchant-dir (expand-file-name "~/.config/enchant"))
+           (harper-file (expand-file-name "harper-user-dict.txt" sjy2-etc-dir))
            (words '()))
       (if (not (file-exists-p source-file))
           (message "Source dictionary not found: %s" source-file)
+        ;; Parse words from source
         (with-temp-buffer
           (insert-file-contents source-file)
           (goto-char (point-min))
           (while (not (eobp))
-            (let* ((line (buffer-substring-no-properties 
-                          (line-beginning-position) 
-                          (line-end-position)))
-                   (trimmed (string-trim line)))
-              ;; Regex: 
-              ;; 1. Skip lines starting with ';' (your comments)
-              ;; 2. Skip lines starting with '*' (the Org headers you added)
-              ;; 3. Capture the first word
+            (let* ((line     (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (line-end-position)))
+                   (trimmed  (string-trim line)))
               (when (and (not (string-prefix-p ";" trimmed))
                          (not (string-prefix-p "*" trimmed))
                          (string-match "^\\([^; \t\n]+\\)" trimmed))
                 (push (match-string 1 trimmed) words)))
             (forward-line 1)))
-        
+        (setq words (sort (delete-dups words) #'string<))
+
+        ;; Write Enchant .dic files
         (make-directory enchant-dir t)
-        ;; Write to .dic files for all active languages
         (dolist (lang '("en_GB" "en_US" "es" "la" "el"))
           (with-temp-file (expand-file-name (concat lang ".dic") enchant-dir)
             (set-buffer-file-coding-system 'utf-8)
-            ;; Enchant personal dicts are PLAIN TEXT, one word per line.
-            ;; No header required for Hunspell/Enchant compatibility.
-            (dolist (word (sort (delete-dups words) #'string<))
-              (insert word "\n"))))
-        
-        (message "Synced %d words to %s/*.dic" (length words) enchant-dir)
+            (dolist (word words) (insert word "\n"))))
+
+        ;; Write harper user dict (plain word list, no comments)
+        (with-temp-file harper-file
+          (set-buffer-file-coding-system 'utf-8)
+          (dolist (word words) (insert word "\n")))
+
+        (message "Synced %d words → %s/*.dic and %s"
+                 (length words) enchant-dir harper-file)
         (when (bound-and-true-p jinx-mode)
-          (jinx-mode -1) (jinx-mode 1)))))
-
-  ;; 2. Keybindings
-  (keymap-set sjy2-spelling-map "c" #'jinx-correct)
-  (keymap-set sjy2-spelling-map "n" #'jinx-next)
-  (keymap-set sjy2-spelling-map "p" #'jinx-previous)
-  (keymap-set sjy2-spelling-map "l" #'jinx-languages)
-  (keymap-set sjy2-spelling-map "S" #'sjy2/sync-jinx-dictionary)
-
-  (sjy2/sync-jinx-dictionary))
+          (jinx-mode -1) (jinx-mode 1))))))
   
 
 ;;  Denote – simple notetaking
@@ -1599,7 +1641,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
          ("C-c n b"   . denote-find-backlink)
          ("C-c n f"   . sjy2/consult-denote-fielname-search)  ; filename search
          ("C-c n g"   . sjy2/consult-denote-ripgrep)
-         ("C-c n r"   . sjy2/consult-denote-ripgrep)) 
+         ("C-c n r"   . sjy2/consult-denote-ripgrep))
   :hook ((dired-mode  . denote-dired-mode)
          (text-mode   . denote-fontify-links-mode-maybe))
   :config
@@ -1724,7 +1766,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :after org
   :hook ((org-mode                 . org-modern-mode)
          (org-agenda-finalize-hook . org-modern-agenda))
-  :custom  
+  :custom
   (org-modern-replace-stars '("◉" "○" "●" "◦" "•" "·"))
   ;; (org-modern-replace-stars '("⭐️" "💎" "☘️" "🐺" "🦊" "🐰"))
   (org-modern-hide-stars 'leading)
@@ -1732,13 +1774,13 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (org-modern-table t)
   (org-modern-todo nil)       ; explicity set with org-todo-keyword-faces
   (org-modern-priority t)
-  (org-modern-checkbox 
+  (org-modern-checkbox
    '((?X . "☑")
-     (?  . "☐") 
+     (?  . "☐")
      (?- . "❍")))
-  (org-modern-list 
+  (org-modern-list
    '((42 . "—")
-     (43 . "—") 
+     (43 . "—")
      (45 . "—")))
   (org-modern-horizontal-rule "────────────────────")
   (org-modern-radio-target    '("❰" t "❱"))
@@ -1849,8 +1891,9 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   :init
   (setq popper-reference-buffers
         '("\\*TeX Help\\*"
-          "\\*jj-log:.*\\*"  ; Matches the *jj-log:repo-name* pattern
+          "\\*jj-log:.*\\*"
           "\\*Emacs log\\*"
+	  "\\*Flycheck errors\\*"
           help-mode
           helpful-mode
           compilation-mode
@@ -1898,7 +1941,14 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
           (display-buffer-in-side-window)
           (side . right)
           (slot . 1) ; Using slot 1 keeps it distinct if a help buffer is also open
-          (window-width . 80)))
+          (window-width . 80))
+	 ;; Catch flycheck buffers
+         ("\\*Flycheck.*\\*"
+          (display-buffer-in-side-window)
+          (side . right)
+          (slot . 2)   ;; separate lane = cleaner layout
+          (window-width . 80))
+	 )
        display-buffer-alist))
 
 ;;; ———————————————————————— 90 sjy2 custom code – 2025 cleaned  ————————————————————————
@@ -1931,7 +1981,7 @@ With prefix ARG, copy the line with trailing newline (like `kill-line')."
   (define-prefix-command 'sjy2-md-agenda-prefix)
   (global-set-key (kbd "M-m a") 'sjy2-md-agenda-prefix)
   :bind (("M-m a n" . sjy2-md-agenda-new-entry)
-         ("M-m a m" . sjy2-md-agenda-mode)))
+	 ("M-m a m" . sjy2-md-agenda-mode)))
 
 
 
